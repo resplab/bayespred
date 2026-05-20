@@ -1,10 +1,29 @@
 Package: BayesCPM
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Type: Package
+Title: Pragmatic Bayesian Workflow for Clinical Prediction Modelling
+Version: 0.1.0
+Date: 2026-05-19
+Authors@R:
+    person("Mohsen", "Sadatsafavi", role = c("aut", "cre"),
+           email = "msafavi@mail.ubc.ca")
+Description: Implements the pragmatic Bayesian workflow for clinical prediction
+    modelling described in Sadatsafavi & Riley (2026). Fits logistic regression
+    under four shrinkage priors (flat, Jeffreys, log-F, Bayesian Ridge) and
+    computes the posterior mean of predicted probability via Gauss-Hermite
+    quadrature, MacKay approximation, or self-projection. The resulting 'bpm'
+    objects are self-contained: prediction at deployment time requires only
+    base R, with no dependency on mgcv or brglm2.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
+LazyData: true
+Imports:
+    mgcv,
+    brglm2
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+Config/testthat/edition: 3
+VignetteBuilder: knitr

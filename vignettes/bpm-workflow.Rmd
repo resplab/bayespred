@@ -1,0 +1,142 @@
+---
+title: "Pragmatic Bayesian Prediction Modelling with BayesCPM"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Pragmatic Bayesian Prediction Modelling with BayesCPM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Overview
+
+`BayesCPM` implements the pragmatic Bayesian workflow for clinical prediction
+modelling described in Sadatsafavi & Riley (2026). The key insight is that the
+*posterior mean* (PM) predicted probability — rather than the plug-in estimate
+(PE) — is the correct target at deployment time under a proper scoring rule.
+
+This vignette illustrates the full workflow on a simulated dataset that mimics
+a binary 30-day outcome study.
+
+## Simulated dataset
+
+```{r data}
+library(BayesCPM)
+set.seed(2026)
+n <- 2000
+
+dat <- data.frame(
+  age    = rnorm(n, mean = 65, sd = 12),
+  sbp    = rnorm(n, mean = 130, sd = 20),
+  sex    = factor(sample(c("male", "female"), n, replace = TRUE)),
+  killip = factor(sample(c("I", "II", "III"), n, replace = TRUE,
+                         prob = c(0.7, 0.2, 0.1)))
+)
+lp <- -4 + 0.04 * dat$age - 0.02 * dat$sbp +
+       0.3 * (dat$sex == "male") +
+       0.8 * (dat$killip == "II") + 1.5 * (dat$killip == "III")
+dat$outcome <- rbinom(n, 1L, plogis(lp))
+cat(sprintf("n = %d,  events = %d (%.1f%%)\n",
+            n, sum(dat$outcome), 100 * mean(dat$outcome)))
+```
+
+## Fitting under different priors
+
+```{r fit-all}
+form <- outcome ~ age + sbp + sex + killip
+
+fit_flat  <- bpm(form, data = dat, prior = flat())
+fit_jeff  <- bpm(form, data = dat, prior = jeffreys())
+fit_logf  <- bpm(form, data = dat, prior = log_f(m = 2))
+fit_ridge <- bpm(form, data = dat, prior = bridge())
+```
+
+Compare coefficient estimates across priors:
+
+```{r coef-table}
+coef_tab <- sapply(
+  list(flat = fit_flat, jeffreys = fit_jeff, logf2 = fit_logf, ridge = fit_ridge),
+  coef
+)
+round(coef_tab, 3)
+```
+
+## Prediction for a new patient
+
+```{r new-patient}
+sam <- data.frame(
+  age    = 72,
+  sbp    = 105,
+  sex    = factor("male",   levels = c("female", "male")),
+  killip = factor("II",     levels = c("I", "II", "III"))
+)
+```
+
+### Plug-in estimate vs posterior mean
+
+```{r point-preds}
+pe <- predict(fit_logf, sam, method = "pe")
+pm <- predict(fit_logf, sam, method = "pm")
+cat(sprintf("PE = %.3f   PM = %.3f\n", pe, pm))
+```
+
+### Credible intervals
+
+```{r cri}
+predict(fit_logf, sam, method = "pm", interval = 0.95)
+predict(fit_logf, sam, method = "pe", interval = 0.95)
+```
+
+The PM lies inside but not at the centre of the interval (Jensen's inequality).
+
+### MacKay approximation
+
+```{r mackay}
+predict(fit_logf, sam, method = "pm_mackay")
+```
+
+## Self-projection for simplified deployment equations
+
+```{r projpred}
+fit_proj <- bpm(form, data = dat, prior = log_f(m = 2), projpred = TRUE)
+
+round(coef(fit_proj, type = "projection"), 3)
+
+c(pm      = predict(fit_proj, sam, method = "pm"),
+  pm_proj = predict(fit_proj, sam, method = "pm_proj"))
+```
+
+## Portability: predict with base R only
+
+```{r portability}
+tmp <- tempfile(fileext = ".rds")
+saveRDS(fit_ridge, tmp)
+fit_reloaded <- readRDS(tmp)
+predict(fit_reloaded, sam)   # works with base R only at deployment
+unlink(tmp)
+```
+
+## Model summary
+
+```{r summary}
+summary(fit_logf)
+```
+
+## All four priors on the same patient
+
+```{r compare-all}
+sapply(
+  list(flat = fit_flat, jeffreys = fit_jeff, logf2 = fit_logf, ridge = fit_ridge),
+  predict,
+  newdata = sam,
+  method = "pm"
+)
+```
+
+## Reference
+
+Sadatsafavi M, Riley RD (2026). A practical Bayesian workflow for clinical
+prediction modelling. *[journal TBA]*.
