@@ -1,61 +1,53 @@
-# Internal: compute projection coefficients.
-# X_dev:  design matrix used to compute PM on the development sample.
-# X_proj: design matrix the projection coefficients are fitted against.
-#         Identical to X_dev for self-projection; different for custom projection.
-.compute_projection <- function(X_dev, X_proj, beta, V, family, self = TRUE) {
-  mu    <- as.numeric(X_dev %*% beta)
-  sigma <- sqrt(pmax(as.numeric(rowSums((X_dev %*% V) * X_dev)), 0))
-  pm    <- .pm_quadrature(mu, sigma)
-  fit   <- suppressWarnings(glm.fit(X_proj, pm, family = family))
-  list(
-    coefficients = fit$coefficients,
-    fit_method   = if (self) "self_projection" else "custom_projection"
-  )
-}
-
-#' Compute projection coefficients from a bpm object
+#' Project a bpm model onto a simplified linear predictor (PM method)
 #'
-#' Returns the projection result without modifying the object. For
-#' self-projection (no `formula`), the posterior-mean predictions on the
-#' development sample are regressed back on the same design matrix, producing
-#' a simplified linear predictor. For custom projection, they are regressed on
-#' a user-supplied (typically simpler) formula — useful for building clinical
-#' risk scores with fewer or different predictors.
+#' Computes posterior-mean (PM) predictions on the development sample and
+#' regresses them onto a design matrix, producing a standalone `bpm_proj_pm`
+#' object with no covariance matrix. All three aspects of the projection model
+#' default to the main `bpm` fit but can be overridden independently:
 #'
-#' To cache the result on the object for use with
-#' `predict(..., method = "pm_proj")`, pass the return value to
-#' [add_projection()] or use it directly in a pipe:
-#' ```r
-#' fit <- bpm(...) |> add_projection()
-#' fit <- bpm(...) |> add_projection(formula = ~ age + sex, data = dat)
-#' ```
+#' * **`formula`** — defaults to the main model's formula (self-projection).
+#'   Supply a simpler or different formula to project onto a reduced predictor
+#'   set, e.g. `~ age + sex`.
+#' * **`family`** — defaults to `object$family` (same link as the main model).
+#'   Override to project onto a different link function.
+#' * **`data`** — the sample used both to compute PM predictions (always via
+#'   the main model's coefficients and vcov) and to fit the projection formula.
+#'   Can be the original development sample, or a different dataset entirely —
+#'   for example, local data from a new site, enabling domain-specific
+#'   projection without refitting the main model. When omitted, the model frame
+#'   stored on `object` is used (requires `model = TRUE` at fit time).
+#'
+#' The returned object is self-contained and can be saved and deployed with
+#' [predict.bpm_proj_pm()] using base R only — no dependency on the original
+#' fit or on `mgcv` / `brglm2`.
 #'
 #' @param object A `bpm` object.
-#' @param formula Optional one- or two-sided formula specifying the projection
-#'   model. If `NULL` (default), self-projection onto the original design matrix
-#'   is performed.
-#' @param data Data frame containing the development sample. Required for
-#'   custom projection; also required for self-projection when `object` was
-#'   fitted with `model = FALSE`.
-#' @param family Family object for the projection fit. Defaults to
-#'   `object$family` (same link as the main model).
+#' @param formula Formula for the projection model. `NULL` (default) uses the
+#'   same formula as `object`. A one- or two-sided formula (LHS is ignored)
+#'   overrides this, e.g. `~ age + sex`.
+#' @param data Data frame used to compute PM predictions and fit the projection.
+#'   Can be the original development sample or a different dataset (e.g. local
+#'   data from a new site). When omitted, the model frame stored on `object` is
+#'   used (requires `model = TRUE` at fit time).
+#' @param family Family object for the projection fit. `NULL` (default) reuses
+#'   `object$family`.
 #' @param ... Currently unused.
 #'
-#' @return A list with elements `coefficients`, `fit_method`, `terms`,
-#'   `contrasts`, `xlevels`, and `family` — everything needed for
-#'   `predict(..., method = "pm_proj")` to reconstruct the design matrix on
-#'   new data.
+#' @return An object of class `"bpm_proj_pm"` with elements `coefficients`,
+#'   `terms`, `contrasts`, `xlevels`, `family`, and `call`.
 #'
-#' @seealso [add_projection()], [predict.bpm()]
+#' @seealso [predict.bpm_proj_pm()]
 #' @export
-project <- function(object, ...) UseMethod("project")
+project_pm <- function(object, ...) UseMethod("project_pm")
 
 #' @export
-project.bpm <- function(object, formula = NULL, data = NULL, family = NULL, ...) {
+project_pm.bpm <- function(object, formula = NULL, data = NULL,
+                            family = NULL, ...) {
+  cl          <- match.call()
   proj_family <- if (is.null(family)) object$family else family
 
   if (is.null(formula)) {
-    # Self-projection ---------------------------------------------------------
+    # Self-projection -----------------------------------------------------------
     if (!is.null(object$model)) {
       X_dev <- model.matrix(object$terms, object$model,
                             contrasts.arg = object$contrasts)
@@ -70,64 +62,99 @@ project.bpm <- function(object, formula = NULL, data = NULL, family = NULL, ...)
         call. = FALSE
       )
     }
-    raw <- .compute_projection(X_dev, X_dev, object$coefficients, object$vcov,
-                               proj_family, self = TRUE)
-    c(raw, list(
-      terms     = object$terms,
-      contrasts = object$contrasts,
-      xlevels   = object$xlevels,
-      family    = proj_family
-    ))
+    mu  <- as.numeric(X_dev %*% object$coefficients)
+    sig <- sqrt(pmax(as.numeric(rowSums((X_dev %*% object$vcov) * X_dev)), 0))
+    pm  <- .pm_quadrature(mu, sig)
+    fit <- suppressWarnings(glm.fit(X_dev, pm, family = proj_family))
+
+    structure(
+      list(
+        coefficients = fit$coefficients,
+        terms        = object$terms,
+        contrasts    = object$contrasts,
+        xlevels      = object$xlevels,
+        family       = proj_family,
+        call         = cl
+      ),
+      class = "bpm_proj_pm"
+    )
 
   } else {
-    # Custom projection -------------------------------------------------------
+    # Custom projection ---------------------------------------------------------
     if (is.null(data))
       stop("Supply `data` for custom projection.", call. = FALSE)
 
-    # PM predictions are computed from the main model on `data`.
     tt_dev <- delete.response(object$terms)
     mf_dev <- model.frame(tt_dev, data, xlev = object$xlevels)
     X_dev  <- model.matrix(tt_dev, mf_dev, contrasts.arg = object$contrasts)
 
-    # Projection design matrix from the custom formula.
-    if (length(formula) == 3L) formula <- formula[-2L]  # drop LHS if present
+    mu  <- as.numeric(X_dev %*% object$coefficients)
+    sig <- sqrt(pmax(as.numeric(rowSums((X_dev %*% object$vcov) * X_dev)), 0))
+    pm  <- .pm_quadrature(mu, sig)
+
+    if (length(formula) == 3L) formula <- formula[-2L]
     proj_terms    <- terms(formula, data = data)
     mf_proj       <- model.frame(proj_terms, data)
     X_proj        <- model.matrix(proj_terms, mf_proj)
     proj_contrasts <- attr(X_proj, "contrasts")
     proj_xlevels  <- .get_xlevels(proj_terms, mf_proj)
 
-    raw <- .compute_projection(X_dev, X_proj, object$coefficients, object$vcov,
-                               proj_family, self = FALSE)
-    c(raw, list(
-      terms     = proj_terms,
-      contrasts = proj_contrasts,
-      xlevels   = proj_xlevels,
-      family    = proj_family
-    ))
+    fit <- suppressWarnings(glm.fit(X_proj, pm, family = proj_family))
+
+    structure(
+      list(
+        coefficients = fit$coefficients,
+        terms        = proj_terms,
+        contrasts    = proj_contrasts,
+        xlevels      = proj_xlevels,
+        family       = proj_family,
+        call         = cl
+      ),
+      class = "bpm_proj_pm"
+    )
   }
 }
 
-#' Cache projection coefficients on a bpm object
-#'
-#' Computes projection coefficients via [project()] and stores them on the
-#' object. Pipe-friendly: takes and returns the `bpm` object.
-#'
-#' ```r
-#' fit <- bpm(...) |> add_projection()
-#' fit <- bpm(...) |> add_projection(formula = ~ age + sex, data = dat)
-#' ```
-#'
-#' @inheritParams project
-#' @return The same `bpm` object with `$projection` populated.
-#' @seealso [project()], [predict.bpm()]
-#' @export
-add_projection <- function(object, ...) UseMethod("add_projection")
+# ------------------------------------------------------------------------------
 
+#' Predict from a PM-projected model
+#'
+#' @param object A `bpm_proj_pm` object returned by [project_pm()].
+#' @param newdata A data frame of new observations.
+#' @param type `"response"` (default) for predicted probability;
+#'   `"link"` for the linear predictor.
+#' @param na.action Function to handle `NA`s in `newdata`. Default
+#'   [stats::na.pass].
+#' @param ... Currently unused.
+#' @return A numeric vector.
+#' @seealso [project_pm()]
 #' @export
-add_projection.bpm <- function(object, formula = NULL, data = NULL,
-                                family = NULL, ...) {
-  object$projection <- project(object, formula = formula, data = data,
-                                family = family, ...)
-  object
+predict.bpm_proj_pm <- function(object, newdata,
+                                 type      = c("response", "link"),
+                                 na.action = na.pass, ...) {
+  type <- match.arg(type)
+  tt   <- delete.response(object$terms)
+  mf   <- model.frame(tt, newdata, xlev = object$xlevels, na.action = na.action)
+  X    <- model.matrix(tt, mf, contrasts.arg = object$contrasts)
+  eta  <- as.numeric(X %*% object$coefficients)
+  if (type == "link") return(eta)
+  as.numeric(object$family$linkinv(eta))
+}
+
+#' Extract coefficients from a bpm_proj_pm object
+#' @param object A `bpm_proj_pm` object.
+#' @param ... Ignored.
+#' @export
+coef.bpm_proj_pm <- function(object, ...) object$coefficients
+
+#' Print a bpm_proj_pm object
+#' @param x A `bpm_proj_pm` object.
+#' @param ... Ignored.
+#' @export
+print.bpm_proj_pm <- function(x, ...) {
+  cat("PM-Projected Prediction Model\n\n")
+  cat("Call:\n"); print(x$call); cat("\n")
+  cat("Coefficients:\n")
+  print(round(x$coefficients, 4))
+  invisible(x)
 }

@@ -10,9 +10,6 @@
 #'   in v1; any other value raises an informative error.
 #' @param prior A prior specification created by [flat()], [jeffreys()],
 #'   [log_f()], or [bridge()]. Default: `log_f(m = 2)`.
-#' @param projpred Logical. If `TRUE`, compute self-projection coefficients at
-#'   fit time and cache them on the returned object. Default `FALSE`. Required
-#'   for `predict(..., method = "pm_proj")`.
 #' @param model Logical. If `TRUE` (default), store the model frame on the
 #'   returned object (used by `predict()` when `newdata` is absent).
 #' @param ... Currently unused.
@@ -29,7 +26,6 @@
 #'   \item{`xlevels`}{Factor level sets from the training data.}
 #'   \item{`call`}{The matched call.}
 #'   \item{`model`}{The model frame (if `model = TRUE`).}
-#'   \item{`projection`}{Self-projection coefficients (if `projpred = TRUE`).}
 #'   \item{`fit_method`}{Internal tag identifying the fitting backend.}
 #' }
 #'
@@ -43,10 +39,9 @@
 #'
 #' @export
 bpm <- function(formula, data,
-                family   = binomial(link = "logit"),
-                prior    = log_f(m = 2),
-                projpred = FALSE,
-                model    = TRUE,
+                family = binomial(link = "logit"),
+                prior  = log_f(m = 2),
+                model  = TRUE,
                 ...) {
   cl <- match.call()
 
@@ -75,20 +70,6 @@ bpm <- function(formula, data,
   if (!fit_result$converged)
     warning("Model did not converge.", call. = FALSE)
 
-  projection <- if (isTRUE(projpred))
-    c(
-      .compute_projection(X, X, fit_result$coefficients, fit_result$vcov,
-                          family, self = TRUE),
-      list(
-        terms     = terms_obj,
-        contrasts = contrasts,
-        xlevels   = xlevels,
-        family    = family
-      )
-    )
-  else
-    NULL
-
   structure(
     list(
       coefficients = fit_result$coefficients,
@@ -101,7 +82,6 @@ bpm <- function(formula, data,
       xlevels      = xlevels,
       call         = cl,
       model      = if (isTRUE(model)) mf else NULL,
-      projection = projection,
       fit_method = fit_result$fit_method
     ),
     class = "bpm"

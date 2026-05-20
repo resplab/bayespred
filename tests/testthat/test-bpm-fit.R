@@ -3,7 +3,7 @@ test_that("bpm returns a bpm object with expected fields", {
   expect_s3_class(fit, "bpm")
   expected <- c("coefficients", "vcov", "family", "prior", "formula",
                 "terms", "contrasts", "xlevels", "call", "model",
-                "projection", "fit_method")
+                "fit_method")
   expect_true(all(expected %in% names(fit)))
 })
 
@@ -67,11 +67,6 @@ test_that("bpm errors when prior is not a bpm_prior", {
 test_that("model = FALSE omits the model frame", {
   fit <- bpm(y ~ x1, data = toy, prior = flat(), model = FALSE)
   expect_null(fit$model)
-})
-
-test_that("projection is NULL when projpred = FALSE", {
-  fit <- bpm(y ~ x1, data = toy, prior = flat())
-  expect_null(fit$projection)
 })
 
 test_that("fit_method tag is set correctly for each prior", {

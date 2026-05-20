@@ -67,12 +67,7 @@ round(coef_tab, 3)
 ## Prediction for a new patient
 
 ```{r new-patient}
-sam <- data.frame(
-  age    = 72,
-  sbp    = 105,
-  sex    = factor("male",   levels = c("female", "male")),
-  killip = factor("II",     levels = c("I", "II", "III"))
-)
+sam <- data.frame(age = 72, sbp = 105, sex = "male", killip = "II")
 ```
 
 ### Plug-in estimate vs posterior mean
@@ -98,26 +93,22 @@ The PM lies inside but not at the centre of the interval (Jensen's inequality).
 predict(fit_logf, sam, method = "pm_mackay")
 ```
 
-## Self-projection for simplified deployment equations
+## PM projection for simplified deployment equations
+
+`project_pm()` regresses the posterior-mean soft labels back onto a design
+matrix, producing a standalone `bpm_proj_pm` object with no covariance matrix.
+It can use the same predictors as the main model (self-projection) or a simpler
+custom formula.
 
 ```{r projpred}
-fit_proj <- bpm(form, data = dat, prior = log_f(m = 2), projpred = TRUE)
+proj <- project_pm(fit_logf)
+round(coef(proj), 3)
 
-round(coef(fit_proj, type = "projection"), 3)
-
-c(pm      = predict(fit_proj, sam, method = "pm"),
-  pm_proj = predict(fit_proj, sam, method = "pm_proj"))
+predict(proj, sam)
 ```
 
-## Portability: predict with base R only
-
-```{r portability}
-tmp <- tempfile(fileext = ".rds")
-saveRDS(fit_ridge, tmp)
-fit_reloaded <- readRDS(tmp)
-predict(fit_reloaded, sam)   # works with base R only at deployment
-unlink(tmp)
-```
+The projected model is self-contained and can be saved and reloaded
+independently of the original fit.
 
 ## Model summary
 

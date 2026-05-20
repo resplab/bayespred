@@ -8,7 +8,7 @@
   object,
   newdata,
   type = c("response", "link", "terms"),
-  method = c("pm", "pe", "pm_mackay", "pm_proj"),
+  method = c("pm", "pe", "pm_mackay"),
   se.fit = FALSE,
   interval = NULL,
   dispersion = NULL,
@@ -38,8 +38,6 @@ relevant when \code{type = "response"}:
 \item{\code{"pe"}}{Plug-in estimate: \code{plogis(X \%*\% beta_hat)}. Equivalent to
 \code{predict.glm(..., type = "response")}.}
 \item{\code{"pm_mackay"}}{MacKay (1992) closed-form approximation to the PM.}
-\item{\code{"pm_proj"}}{Self-projection coefficients (requires
-\code{\link[=add_projection]{add_projection()}} first).}
 }}
 
 \item{se.fit}{Logical. If \code{TRUE}, return a list with elements \code{fit},

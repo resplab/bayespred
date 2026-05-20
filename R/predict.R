@@ -23,8 +23,6 @@
 #'   \item{`"pe"`}{Plug-in estimate: `plogis(X %*% beta_hat)`. Equivalent to
 #'     `predict.glm(..., type = "response")`.}
 #'   \item{`"pm_mackay"`}{MacKay (1992) closed-form approximation to the PM.}
-#'   \item{`"pm_proj"`}{Self-projection coefficients (requires
-#'     [add_projection()] first).}
 #' }
 #' @param se.fit Logical. If `TRUE`, return a list with elements `fit`,
 #'   `se.fit`, and `residual.scale`, matching the structure of
@@ -79,12 +77,19 @@
 #' @export
 predict.bpm <- function(object, newdata,
                         type       = c("response", "link", "terms"),
-                        method     = c("pm", "pe", "pm_mackay", "pm_proj"),
+                        method     = c("pm", "pe", "pm_mackay"),
                         se.fit     = FALSE,
                         interval   = NULL,
                         dispersion = NULL,
                         na.action  = na.pass,
                         ...) {
+  if (identical(method, "pm_proj"))
+    stop(
+      '`method = "pm_proj"` is no longer available on bpm objects. ',
+      "Use `predict(project_pm(fit), newdata)` instead.",
+      call. = FALSE
+    )
+
   type   <- match.arg(type)
   method <- match.arg(method)
 
@@ -93,14 +98,6 @@ predict.bpm <- function(object, newdata,
 
   if (!is.null(interval) && isTRUE(se.fit))
     stop("`interval` and `se.fit = TRUE` cannot be used together.", call. = FALSE)
-
-  if (method == "pm_proj" && is.null(object$projection))
-    stop(
-      "No projection coefficients found on this object. ",
-      "Run `fit <- add_projection(fit)` to compute them without refitting, ",
-      "or refit with `projpred = TRUE`.",
-      call. = FALSE
-    )
 
   # ---- build prediction design matrix ----------------------------------------
   if (missing(newdata) || is.null(newdata)) {
@@ -114,23 +111,6 @@ predict.bpm <- function(object, newdata,
     mf_nd <- model.frame(tt, newdata, xlev = object$xlevels,
                          na.action = na.action)
     X_new <- model.matrix(tt, mf_nd, contrasts.arg = object$contrasts)
-  }
-
-  # For pm_proj, build a separate design matrix from the projection's own terms
-  # (supports custom projections with different predictors than the main model).
-  if (method == "pm_proj") {
-    proj <- object$projection
-    if (missing(newdata) || is.null(newdata)) {
-      X_proj <- model.matrix(proj$terms, object$model,
-                             contrasts.arg = proj$contrasts)
-    } else {
-      tt_p  <- delete.response(proj$terms)
-      mf_p  <- model.frame(tt_p, newdata, xlev = proj$xlevels,
-                           na.action = na.action)
-      X_proj <- model.matrix(tt_p, mf_p, contrasts.arg = proj$contrasts)
-    }
-  } else {
-    X_proj <- NULL
   }
 
   beta <- object$coefficients
@@ -162,8 +142,7 @@ predict.bpm <- function(object, newdata,
   fit <- switch(method,
     pe        = plogis(eta),
     pm        = .pm_quadrature(eta, sigma),
-    pm_mackay = .pm_mackay(eta, sigma),
-    pm_proj   = .pm_projection(X_proj, object$projection$coefficients)
+    pm_mackay = .pm_mackay(eta, sigma)
   )
 
   if (!is.null(interval)) {

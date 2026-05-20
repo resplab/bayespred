@@ -9,7 +9,6 @@ bpm(
   data,
   family = binomial(link = "logit"),
   prior = log_f(m = 2),
-  projpred = FALSE,
   model = TRUE,
   ...
 )
@@ -24,10 +23,6 @@ in v1; any other value raises an informative error.}
 
 \item{prior}{A prior specification created by \code{\link[=flat]{flat()}}, \code{\link[=jeffreys]{jeffreys()}},
 \code{\link[=log_f]{log_f()}}, or \code{\link[=bridge]{bridge()}}. Default: \code{log_f(m = 2)}.}
-
-\item{projpred}{Logical. If \code{TRUE}, compute self-projection coefficients at
-fit time and cache them on the returned object. Default \code{FALSE}. Required
-for \code{predict(..., method = "pm_proj")}.}
 
 \item{model}{Logical. If \code{TRUE} (default), store the model frame on the
 returned object (used by \code{predict()} when \code{newdata} is absent).}
@@ -47,7 +42,6 @@ An object of class \code{"bpm"} with components:
 \item{\code{xlevels}}{Factor level sets from the training data.}
 \item{\code{call}}{The matched call.}
 \item{\code{model}}{The model frame (if \code{model = TRUE}).}
-\item{\code{projection}}{Self-projection coefficients (if \code{projpred = TRUE}).}
 \item{\code{fit_method}}{Internal tag identifying the fitting backend.}
 }
 }

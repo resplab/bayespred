@@ -84,8 +84,8 @@ test_that("type='response' with interval has asymmetric bounds (logistic transfo
 # ---- Bayesian methods --------------------------------------------------------
 
 test_that("all methods return values strictly in (0, 1)", {
-  fit <- bpm(y ~ x1 + x2, data = toy, prior = log_f(m = 2), projpred = TRUE)
-  for (meth in c("pe", "pm", "pm_mackay", "pm_proj")) {
+  fit <- bpm(y ~ x1 + x2, data = toy, prior = log_f(m = 2))
+  for (meth in c("pe", "pm", "pm_mackay")) {
     p <- predict(fit, new1, method = meth)
     expect_true(p > 0 && p < 1, label = paste("method =", meth))
   }
@@ -143,17 +143,6 @@ test_that("predict on multiple rows returns correct length / nrow", {
   out_l <- predict(fit, newdf, type = "link", interval = 0.95)
   expect_equal(nrow(out_l), 3L)
   expect_named(out_l, c("fit", "lwr", "upr", "se.link"))
-})
-
-test_that("pm_proj errors with informative message when no projection cached", {
-  fit <- bpm(y ~ x1 + x2, data = toy, prior = flat())
-  expect_error(predict(fit, new1, method = "pm_proj"), "add_projection")
-})
-
-test_that("pm_proj returns a valid prediction when projpred = TRUE", {
-  fit <- bpm(y ~ x1 + x2, data = toy, prior = flat(), projpred = TRUE)
-  p   <- predict(fit, new1, method = "pm_proj")
-  expect_true(p > 0 && p < 1)
 })
 
 test_that("predict without newdata works when model = TRUE", {

@@ -14,8 +14,6 @@ print.bpm <- function(x, ...) {
   }
   cat("\nCoefficients:\n")
   print(round(x$coefficients, 4))
-  if (!is.null(x$projection))
-    cat('\n[Self-projection available: coef(x, type = "projection")]\n')
   invisible(x)
 }
 
@@ -71,26 +69,9 @@ print.summary.bpm <- function(x, ...) {
 #' Extract coefficients from a bpm object
 #'
 #' @param object A `bpm` object.
-#' @param type Either `"main"` (default) for the fitted coefficients, or
-#'   `"projection"` for the self-projection coefficients (requires
-#'   `projpred = TRUE` at fit time).
 #' @param ... Ignored.
 #' @export
-coef.bpm <- function(object, type = c("main", "projection"), ...) {
-  type <- match.arg(type)
-  if (type == "projection") {
-    if (is.null(object$projection))
-      stop(
-        "No projection coefficients found on this object. ",
-        "Run `fit <- add_projection(fit)` to compute them without refitting, ",
-        "or refit with `projpred = TRUE`.",
-        call. = FALSE
-      )
-    object$projection$coefficients
-  } else {
-    object$coefficients
-  }
-}
+coef.bpm <- function(object, ...) object$coefficients
 
 #' Extract the posterior covariance matrix from a bpm object
 #'

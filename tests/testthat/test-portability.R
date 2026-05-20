@@ -11,16 +11,14 @@ test_that("flat-prior bpm survives save/reload and predicts identically", {
   expect_equal(pred_before, pred_after)
 })
 
-test_that("log_f-prior bpm with projpred survives save/reload", {
-  fit       <- bpm(y ~ x1 + x2, data = toy, prior = log_f(m = 2), projpred = TRUE)
-  pred_pm   <- predict(fit, new1, method = "pm")
-  pred_proj <- predict(fit, new1, method = "pm_proj")
+test_that("bpm_proj_pm survives save/reload and predicts identically", {
+  proj        <- project_pm(bpm(y ~ x1 + x2, data = toy, prior = log_f(m = 2)))
+  pred_before <- predict(proj, new1)
   tmp <- tempfile(fileext = ".rds")
   on.exit(unlink(tmp), add = TRUE)
-  saveRDS(fit, tmp)
-  fit2 <- readRDS(tmp)
-  expect_equal(predict(fit2, new1, method = "pm"),      pred_pm)
-  expect_equal(predict(fit2, new1, method = "pm_proj"), pred_proj)
+  saveRDS(proj, tmp)
+  pred_after <- predict(readRDS(tmp), new1)
+  expect_equal(pred_before, pred_after)
 })
 
 test_that("bridge-prior bpm survives save/reload and predicts identically", {

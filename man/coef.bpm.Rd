@@ -4,14 +4,10 @@
 \alias{coef.bpm}
 \title{Extract coefficients from a bpm object}
 \usage{
-\method{coef}{bpm}(object, type = c("main", "projection"), ...)
+\method{coef}{bpm}(object, ...)
 }
 \arguments{
 \item{object}{A \code{bpm} object.}
-
-\item{type}{Either \code{"main"} (default) for the fitted coefficients, or
-\code{"projection"} for the self-projection coefficients (requires
-\code{projpred = TRUE} at fit time).}
 
 \item{...}{Ignored.}
 }

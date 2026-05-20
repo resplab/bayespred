@@ -397,12 +397,7 @@ that mimics a binary 30-day outcome study.</p>
 </div>
 <div id="prediction-for-a-new-patient" class="section level2">
 <h2>Prediction for a new patient</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>sam <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">age    =</span> <span class="dv">72</span>,</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">sbp    =</span> <span class="dv">105</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">sex    =</span> <span class="fu">factor</span>(<span class="st">&quot;male&quot;</span>,   <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;female&quot;</span>, <span class="st">&quot;male&quot;</span>)),</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">killip =</span> <span class="fu">factor</span>(<span class="st">&quot;II&quot;</span>,     <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">&quot;I&quot;</span>, <span class="st">&quot;II&quot;</span>, <span class="st">&quot;III&quot;</span>))</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>sam <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">age =</span> <span class="dv">72</span>, <span class="at">sbp =</span> <span class="dv">105</span>, <span class="at">sex =</span> <span class="st">&quot;male&quot;</span>, <span class="at">killip =</span> <span class="st">&quot;II&quot;</span>)</span></code></pre></div>
 <div id="plug-in-estimate-vs-posterior-mean" class="section level3">
 <h3>Plug-in estimate vs posterior mean</h3>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>pe <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_logf, sam, <span class="at">method =</span> <span class="st">&quot;pe&quot;</span>)</span>
@@ -427,59 +422,54 @@ inequality).</p>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.06600115</span></span></code></pre></div>
 </div>
 </div>
-<div id="self-projection-for-simplified-deployment-equations" class="section level2">
-<h2>Self-projection for simplified deployment equations</h2>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>fit_proj <span class="ot">&lt;-</span> <span class="fu">bpm</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>), <span class="at">projpred =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">coef</span>(fit_proj, <span class="at">type =</span> <span class="st">&quot;projection&quot;</span>), <span class="dv">3</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)         age         sbp     sexmale    killipII   killipIII </span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;      -3.886       0.017      -0.006       0.322       0.374       1.150</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="fu">c</span>(<span class="at">pm      =</span> <span class="fu">predict</span>(fit_proj, sam, <span class="at">method =</span> <span class="st">&quot;pm&quot;</span>),</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">pm_proj =</span> <span class="fu">predict</span>(fit_proj, sam, <span class="at">method =</span> <span class="st">&quot;pm_proj&quot;</span>))</span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;         pm    pm_proj </span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; 0.06556389 0.06579206</span></span></code></pre></div>
-</div>
-<div id="portability-predict-with-base-r-only" class="section level2">
-<h2>Portability: predict with base R only</h2>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.rds&quot;</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">saveRDS</span>(fit_ridge, tmp)</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>fit_reloaded <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(tmp)</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="fu">predict</span>(fit_reloaded, sam)   <span class="co"># works with base R only at deployment</span></span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; [1] 0.05671086</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="fu">unlink</span>(tmp)</span></code></pre></div>
+<div id="pm-projection-for-simplified-deployment-equations" class="section level2">
+<h2>PM projection for simplified deployment equations</h2>
+<p><code>project_pm()</code> regresses the posterior-mean soft labels
+back onto a design matrix, producing a standalone
+<code>bpm_proj_pm</code> object with no covariance matrix. It can use
+the same predictors as the main model (self-projection) or a simpler
+custom formula.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>proj <span class="ot">&lt;-</span> <span class="fu">project_pm</span>(fit_logf)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">coef</span>(proj), <span class="dv">3</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; (Intercept)         age         sbp     sexmale    killipII   killipIII </span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;      -3.886       0.017      -0.006       0.322       0.374       1.150</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="fu">predict</span>(proj, sam)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; [1] 0.06579206</span></span></code></pre></div>
+<p>The projected model is self-contained and can be saved and reloaded
+independently of the original fit.</p>
 </div>
 <div id="model-summary" class="section level2">
 <h2>Model summary</h2>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">summary</span>(fit_logf)</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; bpm(formula = form, data = dat, prior = log_f(m = 2))</span></span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co">#&gt; Prior: Prior: log-F(m = 2) </span></span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; Fit method: data_augmentation </span></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; n = 2000 observations, 78 events</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co">#&gt; (Intercept) -3.921644   1.033591  -3.794 0.000148 ***</span></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; age          0.016777   0.009910   1.693 0.090460 .  </span></span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; sbp         -0.006355   0.005830  -1.090 0.275690    </span></span>
-<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; sexmale      0.326633   0.231855   1.409 0.158901    </span></span>
-<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt; killipII     0.360758   0.282351   1.278 0.201358    </span></span>
-<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt; killipIII    1.139821   0.291125   3.915 9.03e-05 ***</span></span>
-<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">summary</span>(fit_logf)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; bpm(formula = form, data = dat, prior = log_f(m = 2))</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; Prior: Prior: log-F(m = 2) </span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; Fit method: data_augmentation </span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; n = 2000 observations, 78 events</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; (Intercept) -3.921644   1.033591  -3.794 0.000148 ***</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; age          0.016777   0.009910   1.693 0.090460 .  </span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; sbp         -0.006355   0.005830  -1.090 0.275690    </span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; sexmale      0.326633   0.231855   1.409 0.158901    </span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; killipII     0.360758   0.282351   1.278 0.201358    </span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; killipIII    1.139821   0.291125   3.915 9.03e-05 ***</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 </div>
 <div id="all-four-priors-on-the-same-patient" class="section level2">
 <h2>All four priors on the same patient</h2>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">sapply</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">flat =</span> fit_flat, <span class="at">jeffreys =</span> fit_jeff, <span class="at">logf2 =</span> fit_logf, <span class="at">ridge =</span> fit_ridge),</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  predict,</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">newdata =</span> sam,</span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">&quot;pm&quot;</span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>)</span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="co">#&gt;       flat   jeffreys      logf2      ridge </span></span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="co">#&gt; 0.06645564 0.06891157 0.06556389 0.05671086</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">sapply</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">flat =</span> fit_flat, <span class="at">jeffreys =</span> fit_jeff, <span class="at">logf2 =</span> fit_logf, <span class="at">ridge =</span> fit_ridge),</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  predict,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">newdata =</span> sam,</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">&quot;pm&quot;</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt;       flat   jeffreys      logf2      ridge </span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co">#&gt; 0.06645564 0.06891157 0.06556389 0.05671086</span></span></code></pre></div>
 </div>
 <div id="reference" class="section level2">
 <h2>Reference</h2>
