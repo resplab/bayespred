@@ -76,7 +76,16 @@ bpm <- function(formula, data,
     warning("Model did not converge.", call. = FALSE)
 
   projection <- if (isTRUE(projpred))
-    .compute_projection(X, fit_result$coefficients, fit_result$vcov, family)
+    c(
+      .compute_projection(X, X, fit_result$coefficients, fit_result$vcov,
+                          family, self = TRUE),
+      list(
+        terms     = terms_obj,
+        contrasts = contrasts,
+        xlevels   = xlevels,
+        family    = family
+      )
+    )
   else
     NULL
 
@@ -91,10 +100,9 @@ bpm <- function(formula, data,
       contrasts    = contrasts,
       xlevels      = xlevels,
       call         = cl,
-      model           = if (isTRUE(model)) mf else NULL,
-      projection      = projection,
-      likelihood_fit  = NULL,
-      fit_method      = fit_result$fit_method
+      model      = if (isTRUE(model)) mf else NULL,
+      projection = projection,
+      fit_method = fit_result$fit_method
     ),
     class = "bpm"
   )

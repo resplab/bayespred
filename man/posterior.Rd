@@ -22,5 +22,5 @@ the quantities used for prediction. These incorporate both the likelihood
 and the prior.
 }
 \seealso{
-\code{\link[=likelihood]{likelihood()}}, \code{\link[=add_likelihood]{add_likelihood()}}
+\code{\link[=likelihood]{likelihood()}}
 }

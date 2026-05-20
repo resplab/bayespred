@@ -2,33 +2,27 @@
 % Please edit documentation in R/projection.R
 \name{add_projection}
 \alias{add_projection}
-\title{Add self-projection to an existing bpm object}
+\title{Cache projection coefficients on a bpm object}
 \usage{
-add_projection(object, data = NULL)
+add_projection(object, ...)
 }
 \arguments{
 \item{object}{A \code{bpm} object.}
 
-\item{data}{Optional data frame of the development sample. Required when
-\code{object} was fitted with \code{model = FALSE}; ignored otherwise (the stored
-model frame is used).}
+\item{...}{Currently unused.}
 }
 \value{
-The same \code{bpm} object with the \code{projection} field populated.
-Afterwards, \code{predict(object, newdata, method = "pm_proj")} and
-\code{coef(object, type = "projection")} will work.
+The same \code{bpm} object with \verb{$projection} populated.
 }
 \description{
-Computes self-projection coefficients from a fitted \code{bpm} object without
-refitting the model. The projection is computed from the already-stored
-\code{coefficients} and \code{vcov}, so this is fast regardless of which prior was
-used.
+Computes projection coefficients via \code{\link[=project]{project()}} and stores them on the
+object. Pipe-friendly: takes and returns the \code{bpm} object.
 }
-\examples{
-set.seed(1)
-d   <- data.frame(x = rnorm(200), y = rbinom(200, 1, 0.3))
-fit <- bpm(y ~ x, data = d, prior = log_f(m = 2))   # projpred = FALSE
-fit <- add_projection(fit)
-predict(fit, data.frame(x = 0.5), method = "pm_proj")
-
+\details{
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{fit <- bpm(...) |> add_projection()
+fit <- bpm(...) |> add_projection(formula = ~ age + sex, data = dat)
+}\if{html}{\out{</div>}}
+}
+\seealso{
+\code{\link[=project]{project()}}, \code{\link[=predict.bpm]{predict.bpm()}}
 }

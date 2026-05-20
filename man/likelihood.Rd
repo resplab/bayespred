@@ -2,14 +2,20 @@
 % Please edit documentation in R/inference.R
 \name{likelihood}
 \alias{likelihood}
+\alias{likelihood.bpm}
 \title{Extract the likelihood contribution from a model}
 \usage{
 likelihood(object, ...)
+
+\method{likelihood}{bpm}(object, data = NULL, ...)
 }
 \arguments{
 \item{object}{A model object (e.g. \code{bpm}).}
 
 \item{...}{Currently unused.}
+
+\item{data}{Data frame of the development sample. Required when \code{object} was
+fitted with \code{model = FALSE}; ignored when the model frame is available.}
 }
 \value{
 A named list with elements \code{coefficients} (MLE), \code{vcov}
@@ -20,16 +26,16 @@ which the coefficients are expressed, and to support future extension to
 other GLMs or survival models.
 }
 \description{
-Returns the unpenalised MLE and observed Fisher information — the data's
-contribution to inference, independent of the prior. This is the quantity
-to share in multi-centre or federated settings where sites contribute
-likelihood information for a later meta-analysis.
+Fits the unpenalised (flat-prior) logistic regression and returns the MLE
+and observed Fisher information — the data's contribution to inference,
+independent of the prior. This is the quantity to share in multi-centre or
+federated settings where sites contribute likelihood information for a later
+meta-analysis.
 }
 \details{
-For the \code{flat()} prior the likelihood and posterior are identical, so no
-extra fitting is needed.  For all other priors the unpenalised fit must be
-cached first via \code{\link[=add_likelihood]{add_likelihood()}}.
+For the \code{flat()} prior the likelihood and posterior are identical, so the
+stored coefficients and vcov are returned directly without refitting.
 }
 \seealso{
-\code{\link[=add_likelihood]{add_likelihood()}}, \code{\link[=posterior]{posterior()}}
+\code{\link[=posterior]{posterior()}}
 }

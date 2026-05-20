@@ -45,7 +45,11 @@
   y_aug <- c(y, y_pseudo)
   w_aug <- c(rep(1, length(y)), w_pseudo)
 
-  fit <- glm.fit(X_aug, y_aug, weights = w_aug, family = family)
+  # Non-integer weights (m/2 when m is odd) are intentional — suppress the
+  # binomial "non-integer #successes" warning that glm.fit would otherwise emit.
+  fit <- suppressWarnings(
+    glm.fit(X_aug, y_aug, weights = w_aug, family = family)
+  )
   list(
     coefficients = fit$coefficients,
     vcov         = .logistic_vcov(X_aug, fit$fitted.values, w_aug),
