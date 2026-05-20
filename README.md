@@ -20,14 +20,13 @@ base R at deployment time.
 | log-F(m, m)        | `log_f(m = 2)` | data augmentation + `glm.fit` |
 | Bayesian Ridge     | `bridge()`     | `mgcv::gam` + REML            |
 
-Four prediction methods:
+Three prediction methods on a `bpm` object:
 
 | Method | Argument | Description |
 |----|----|----|
 | Plug-in | `"pe"` | `plogis(X β̂)` |
 | Posterior mean (quadrature) | `"pm"` *(default)* | 30-point Gauss-Hermite |
 | MacKay approximation | `"pm_mackay"` | Closed-form PM approximation |
-| Self-projection | `"pm_proj"` | Simplified linear predictor (opt-in) |
 
 ## Installation
 
@@ -52,7 +51,7 @@ d <- data.frame(x1 = rnorm(500), x2 = rnorm(500),
 # Fit under log-F(2) prior (default)
 fit <- bpm(y ~ x1 + x2, data = d, prior = log_f(m = 2))
 
-# New patient
+# New patient — plain values, no need to specify factor levels
 new_pt <- data.frame(x1 = 0.5, x2 = -1.2)
 
 # Posterior mean (recommended)
@@ -74,16 +73,35 @@ sapply(priors, function(p) {
 #> 0.2212171 0.2229100 0.2214141 0.2415931
 ```
 
-## Self-projection
+## PM projection
+
+`project_pm()` regresses the posterior-mean soft labels onto a design
+matrix, producing a standalone `bpm_proj_pm` object — a simplified
+deployable model with no covariance matrix. All three aspects default to
+the main fit but can be overridden: `formula` (predictor set), `family`
+(link function), and `data` (can be the development sample, local site
+data, or any external dataset).
 
 ``` r
-fit_sp <- bpm(y ~ x1 + x2, data = d, prior = log_f(m = 2), projpred = TRUE)
-coef(fit_sp, type = "projection")
+# Self-projection: same predictors as the main model
+proj <- project_pm(fit)
+coef(proj)
 #> (Intercept)          x1          x2 
 #>  -1.0187703  -0.1398351   0.1387906
-predict(fit_sp, new_pt, method = "pm_proj")
+predict(proj, new_pt)
 #> [1] 0.221795
+
+# Custom projection: reduce to a single predictor
+proj_simple <- project_pm(fit, formula = ~ x1, data = d)
+coef(proj_simple)
+#> (Intercept)          x1 
+#>  -1.0199888  -0.1451582
+predict(proj_simple, new_pt)
+#> [1] 0.251135
 ```
+
+The `bpm_proj_pm` object is fully self-contained and requires only base
+R at deployment time.
 
 ## Portability
 
@@ -96,6 +114,18 @@ fit2 <- readRDS(tmp)
 predict(fit2, new_pt)
 #> [1] 0.2214141
 unlink(tmp)
+```
+
+## Likelihood and posterior
+
+For multi-centre or federated settings, `likelihood()` returns the
+unpenalised MLE and observed Fisher information — the data’s
+contribution independent of the prior. `posterior()` returns the MAP
+estimate and Laplace-approximated covariance used for prediction.
+
+``` r
+lik  <- likelihood(fit)   # unpenalised MLE (computes on-the-fly)
+post <- posterior(fit)    # MAP + posterior covariance
 ```
 
 ## Reference
