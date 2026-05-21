@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{summary.bpmfit}
 \alias{summary.bpmfit}
-\title{Summarise a bpm object}
+\title{Summarise a bpmfit object}
 \usage{
 \method{summary}{bpmfit}(object, ...)
 }

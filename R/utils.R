@@ -1,3 +1,7 @@
+# Declare stats imports so R CMD CHECK does not flag undefined globals.
+#' @importFrom stats binomial coef delete.response glm.fit model.frame model.matrix model.response na.omit na.pass plogis pnorm printCoefmat qnorm terms vcov
+NULL
+
 # Gauss-Hermite quadrature nodes and weights (physicist convention).
 # Uses eigendecomposition of the symmetric tridiagonal Jacobi matrix.
 # Returns list(nodes, weights) satisfying:

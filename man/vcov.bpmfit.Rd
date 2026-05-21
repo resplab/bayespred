@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{vcov.bpmfit}
 \alias{vcov.bpmfit}
-\title{Extract the posterior covariance matrix from a bpm object}
+\title{Extract the posterior covariance matrix from a bpmfit object}
 \usage{
 \method{vcov}{bpmfit}(object, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{Ignored.}
 }
 \description{
-Extract the posterior covariance matrix from a bpm object
+Extract the posterior covariance matrix from a bpmfit object
 }

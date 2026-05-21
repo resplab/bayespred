@@ -1,8 +1,10 @@
 #' Fit a Bayesian prediction model
 #'
 #' Fits a logistic regression model under one of four shrinkage priors and
-#' returns a self-contained `bpm` object that can be used with
-#' [predict.bpmfit()] using base R only at deployment time.
+#' returns a self-contained `bpmfit` object. The deployable `bpm` posterior
+#' (coefficients, covariance, link) is stored as `$posterior` and can be
+#' extracted with [posterior()]. Both `bpmfit` and `bpm` objects accept
+#' [predict()]; the latter always requires `newdata`.
 #'
 #' @param formula A model formula (same syntax as [stats::glm()]).
 #' @param data A data frame containing the variables in `formula`.
@@ -16,29 +18,33 @@
 #'
 #' @return An object of class `"bpmfit"` with components:
 #' \describe{
-#'   \item{`coefficients`}{Named numeric vector of fitted coefficients.}
-#'   \item{`vcov`}{Posterior covariance matrix (Laplace approximation).}
-#'   \item{`family`}{The family object.}
+#'   \item{`posterior`}{A `bpm` object (see [posterior()]) containing the
+#'     deployable posterior: `coefficients` (MAP estimate), `vcov`
+#'     (Laplace-approximated posterior covariance), `family`, `terms`,
+#'     `contrasts`, and `xlevels`. This is everything needed for prediction
+#'     with base R only.}
 #'   \item{`prior`}{The prior specification object.}
 #'   \item{`formula`}{The model formula.}
-#'   \item{`terms`}{Terms object for building prediction design matrices.}
-#'   \item{`contrasts`}{Factor contrast encodings from the training data.}
-#'   \item{`xlevels`}{Factor level sets from the training data.}
 #'   \item{`call`}{The matched call.}
 #'   \item{`model`}{The model frame (if `model = TRUE`).}
 #'   \item{`fit_method`}{Internal tag identifying the fitting backend.}
 #' }
 #'
-#' @seealso [predict.bpmfit()], [flat()], [jeffreys()], [log_f()], [bridge()]
+#' @seealso [predict.bpmfit()], [predict.bpm()], [posterior()],
+#'   [flat()], [jeffreys()], [log_f()], [bridge()]
 #'
 #' @examples
 #' set.seed(1)
 #' d <- data.frame(x = rnorm(200), y = rbinom(200, 1, 0.3))
-#' fit <- bpm(y ~ x, data = d, prior = log_f(m = 2))
+#' fit <- bpmfit(y ~ x, data = d, prior = log_f(m = 2))
 #' predict(fit, data.frame(x = 0.5))
 #'
+#' # Extract the deployable posterior and predict from it
+#' post <- posterior(fit)
+#' predict(post, data.frame(x = 0.5))
+#'
 #' @export
-bpm <- function(formula, data,
+bpmfit <- function(formula, data,
                 family = binomial(link = "logit"),
                 prior  = log_f(m = 2),
                 model  = TRUE,
@@ -47,7 +53,7 @@ bpm <- function(formula, data,
 
   if (!identical(family$family, "binomial") ||
       !identical(family$link,   "logit"))
-    stop("BayesCPM v1 supports only `binomial(link = 'logit')`.")
+    stop("bayespred v1 supports only `binomial(link = 'logit')`.")
 
   if (!inherits(prior, "bpm_prior"))
     stop("`prior` must be created by flat(), jeffreys(), log_f(), or bridge().")
@@ -70,17 +76,24 @@ bpm <- function(formula, data,
   if (!fit_result$converged)
     warning("Model did not converge.", call. = FALSE)
 
-  structure(
+  post <- structure(
     list(
       coefficients = fit_result$coefficients,
       vcov         = fit_result$vcov,
       family       = family,
-      prior        = prior,
-      formula      = formula,
       terms        = terms_obj,
       contrasts    = contrasts,
-      xlevels      = xlevels,
-      call         = cl,
+      xlevels      = xlevels
+    ),
+    class = "bpm"
+  )
+
+  structure(
+    list(
+      posterior  = post,
+      prior      = prior,
+      formula    = formula,
+      call       = cl,
       model      = if (isTRUE(model)) mf else NULL,
       fit_method = fit_result$fit_method
     ),

@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{print.bpmfit}
 \alias{print.bpmfit}
-\title{Print a bpm object}
+\title{Print a bpmfit object}
 \usage{
 \method{print}{bpmfit}(x, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{Ignored.}
 }
 \description{
-Print a bpm object
+Print a bpmfit object
 }

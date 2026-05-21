@@ -2,7 +2,7 @@
 % Please edit documentation in R/predict.R
 \name{predict.bpmfit}
 \alias{predict.bpmfit}
-\title{Predict from a bpm model}
+\title{Predict from a bpmfit model}
 \usage{
 \method{predict}{bpmfit}(
   object,
@@ -65,22 +65,25 @@ the linear-predictor scale (normal approximation) and back-transformed via
 \itemize{
 \item If \code{interval = NULL} and \code{se.fit = FALSE}: a numeric vector.
 \item If \code{interval = 0}: a data frame with columns \code{fit} and \code{se.link}
-only — no bounds. Useful when you need the SE without a specific
-coverage level.
+only — no bounds.
 \item If \code{interval} is in (0, 1): a data frame with columns \code{fit},
-\code{lwr}, \code{upr}, and \code{se.link} (SE of the linear predictor,
-\eqn{\sqrt{x^\top V x}}).
+\code{lwr}, \code{upr}, and \code{se.link}.
 \item If \code{se.fit = TRUE}: a list with elements \code{fit}, \code{se.fit}, and
-\code{residual.scale} (1 for binomial), matching \code{\link[stats:predict.glm]{stats::predict.glm()}}.
+\code{residual.scale} (1 for binomial).
 }
 }
 \description{
-Computes predictions from a fitted \code{bpm} object. The interface is
+Computes predictions from a fitted \code{bpmfit} object. The interface is
 intentionally compatible with \code{\link[stats:predict.glm]{stats::predict.glm()}}: \code{type} controls the
 output scale and \code{se.fit} requests standard errors. The additional \code{method}
 argument selects the Bayesian computation used for \code{type = "response"}.
 }
 \details{
+When \code{newdata} is omitted, predictions are computed on the training data
+using the stored model frame (requires \code{model = TRUE} at fit time). To
+predict on new data from a portable, self-contained object, extract the
+posterior with \code{\link[=posterior]{posterior()}} and call \code{\link[=predict.bpm]{predict.bpm()}} directly.
+
 The marginal posterior of the linear predictor is approximated as
 \deqn{\eta_i \mid \text{data} \approx N(x_i^\top\hat\beta,\; x_i^\top V x_i).}
 All credible intervals and standard errors are derived from this
@@ -90,7 +93,7 @@ but not at the centre of the interval (Jensen's inequality).
 \examples{
 set.seed(1)
 d <- data.frame(x = rnorm(200), y = rbinom(200, 1, 0.3))
-fit <- bpm(y ~ x, data = d, prior = log_f(m = 2))
+fit <- bpmfit(y ~ x, data = d, prior = log_f(m = 2))
 
 # glm-style
 predict(fit, data.frame(x = 0.5), type = "response")

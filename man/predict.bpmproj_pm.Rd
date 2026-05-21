@@ -13,7 +13,7 @@
 )
 }
 \arguments{
-\item{object}{A \code{bpmproj_pm} object returned by \code{\link[=project_pm]{project_pm()}}.}
+\item{object}{A \code{bpmproj_pm} object returned by \code{\link[=bpmproj_pm]{bpmproj_pm()}}.}
 
 \item{newdata}{A data frame of new observations.}
 
@@ -32,5 +32,5 @@ A numeric vector.
 Predict from a PM-projected model
 }
 \seealso{
-\code{\link[=project_pm]{project_pm()}}
+\code{\link[=bpmproj_pm]{bpmproj_pm()}}
 }

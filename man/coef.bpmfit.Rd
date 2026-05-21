@@ -2,7 +2,7 @@
 % Please edit documentation in R/methods.R
 \name{coef.bpmfit}
 \alias{coef.bpmfit}
-\title{Extract coefficients from a bpm object}
+\title{Extract coefficients from a bpmfit object}
 \usage{
 \method{coef}{bpmfit}(object, ...)
 }
@@ -12,5 +12,5 @@
 \item{...}{Ignored.}
 }
 \description{
-Extract coefficients from a bpm object
+Extract coefficients from a bpmfit object
 }

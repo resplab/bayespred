@@ -2,9 +2,12 @@
 % Please edit documentation in R/inference.R
 \name{posterior}
 \alias{posterior}
+\alias{posterior.bpmfit}
 \title{Extract the posterior from a model}
 \usage{
 posterior(object, ...)
+
+\method{posterior}{bpmfit}(object, ...)
 }
 \arguments{
 \item{object}{A model object (e.g. \code{bpmfit}).}
@@ -12,15 +15,16 @@ posterior(object, ...)
 \item{...}{Currently unused.}
 }
 \value{
-A named list with elements \code{coefficients} (MAP), \code{vcov}
-(posterior covariance), and \code{family} (the family object, carrying the
-link function and its inverse).
+A \code{bpm} object with elements \code{coefficients} (MAP), \code{vcov}
+(posterior covariance), \code{family}, \code{terms}, \code{contrasts}, and \code{xlevels}.
 }
 \description{
-Returns the MAP estimate and Laplace-approximated posterior covariance —
-the quantities used for prediction. These incorporate both the likelihood
-and the prior.
+Returns the \code{bpm} object stored on a \code{bpmfit} fit. The \code{bpm} object holds
+the MAP estimate, Laplace-approximated posterior covariance, family, and the
+model metadata needed for prediction (\code{terms}, \code{contrasts}, \code{xlevels}).
+It is self-contained and can be saved and deployed with \code{\link[=predict.bpm]{predict.bpm()}}
+using base R only.
 }
 \seealso{
-\code{\link[=likelihood]{likelihood()}}
+\code{\link[=likelihood]{likelihood()}}, \code{\link[=predict.bpm]{predict.bpm()}}
 }

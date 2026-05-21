@@ -4,8 +4,8 @@
 # the MLE and observed Fisher information — the data's contribution only,
 # independent of the prior.  Useful for multi-centre / federated settings.
 #
-# posterior() returns the MAP estimate and Laplace-approximated posterior
-# covariance (the quantities actually used for prediction).
+# posterior() returns the bpm object stored on the fit, which contains the MAP
+# estimate, Laplace-approximated covariance, and family.
 
 # ----- generics ---------------------------------------------------------------
 
@@ -36,39 +36,42 @@ likelihood <- function(object, ...) UseMethod("likelihood")
 
 #' Extract the posterior from a model
 #'
-#' Returns the MAP estimate and Laplace-approximated posterior covariance —
-#' the quantities used for prediction. These incorporate both the likelihood
-#' and the prior.
+#' Returns the `bpm` object stored on a `bpmfit` fit. The `bpm` object holds
+#' the MAP estimate, Laplace-approximated posterior covariance, family, and the
+#' model metadata needed for prediction (`terms`, `contrasts`, `xlevels`).
+#' It is self-contained and can be saved and deployed with [predict.bpm()]
+#' using base R only.
 #'
 #' @param object A model object (e.g. `bpmfit`).
 #' @param ... Currently unused.
-#' @return A named list with elements `coefficients` (MAP), `vcov`
-#'   (posterior covariance), and `family` (the family object, carrying the
-#'   link function and its inverse).
-#' @seealso [likelihood()]
+#' @return A `bpm` object with elements `coefficients` (MAP), `vcov`
+#'   (posterior covariance), `family`, `terms`, `contrasts`, and `xlevels`.
+#' @seealso [likelihood()], [predict.bpm()]
 #' @export
 posterior <- function(object, ...) UseMethod("posterior")
 
-# ----- bpm methods ------------------------------------------------------------
+# ----- bpmfit methods ---------------------------------------------------------
 
 #' @rdname likelihood
 #' @export
 likelihood.bpmfit <- function(object, data = NULL, ...) {
+  post <- object$posterior
+
   # Flat prior: likelihood == posterior, no refitting needed.
   if (inherits(object$prior, "prior_flat"))
-    return(list(coefficients = object$coefficients,
-                vcov         = object$vcov,
-                family       = object$family))
+    return(list(coefficients = post$coefficients,
+                vcov         = post$vcov,
+                family       = post$family))
 
   # Resolve design matrix and response from stored model frame or supplied data.
   if (!is.null(object$model)) {
-    X <- model.matrix(object$terms, object$model,
-                      contrasts.arg = object$contrasts)
+    X <- model.matrix(post$terms, object$model,
+                      contrasts.arg = post$contrasts)
     y <- model.response(object$model)
   } else if (!is.null(data)) {
-    tt <- delete.response(object$terms)
-    mf <- model.frame(tt, data, xlev = object$xlevels)
-    X  <- model.matrix(tt, mf, contrasts.arg = object$contrasts)
+    tt <- delete.response(post$terms)
+    mf <- model.frame(tt, data, xlev = post$xlevels)
+    X  <- model.matrix(tt, mf, contrasts.arg = post$contrasts)
     y  <- data[[as.character(object$formula[[2L]])]]
   } else {
     stop(
@@ -78,17 +81,14 @@ likelihood.bpmfit <- function(object, data = NULL, ...) {
     )
   }
 
-  flat_fit <- .fit_flat(X, y, object$family)
+  flat_fit <- .fit_flat(X, y, post$family)
   list(
     coefficients = flat_fit$coefficients,
     vcov         = flat_fit$vcov,
-    family       = object$family
+    family       = post$family
   )
 }
 
+#' @rdname posterior
 #' @export
-posterior.bpmfit <- function(object, ...) {
-  list(coefficients = object$coefficients,
-       vcov         = object$vcov,
-       family       = object$family)
-}
+posterior.bpmfit <- function(object, ...) object$posterior

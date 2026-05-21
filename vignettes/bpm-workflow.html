@@ -12,7 +12,7 @@
 
 
 
-<title>Pragmatic Bayesian Prediction Modelling with BayesCPM</title>
+<title>Pragmatic Bayesian Prediction Modelling with bayespred</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -338,13 +338,13 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 <h1 class="title toc-ignore">Pragmatic Bayesian Prediction Modelling
-with BayesCPM</h1>
+with bayespred</h1>
 
 
 
 <div id="overview" class="section level2">
 <h2>Overview</h2>
-<p><code>BayesCPM</code> implements the pragmatic Bayesian workflow for
+<p><code>bayespred</code> implements the pragmatic Bayesian workflow for
 clinical prediction modelling described in Sadatsafavi &amp; Riley
 (2026). The key insight is that the <em>posterior mean</em> (PM)
 predicted probability — rather than the plug-in estimate (PE) — is the
@@ -354,7 +354,7 @@ that mimics a binary 30-day outcome study.</p>
 </div>
 <div id="simulated-dataset" class="section level2">
 <h2>Simulated dataset</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(BayesCPM)</span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(bayespred)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">2000</span></span>
 <span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a></span>
@@ -377,10 +377,10 @@ that mimics a binary 30-day outcome study.</p>
 <h2>Fitting under different priors</h2>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>form <span class="ot">&lt;-</span> outcome <span class="sc">~</span> age <span class="sc">+</span> sbp <span class="sc">+</span> sex <span class="sc">+</span> killip</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>fit_flat  <span class="ot">&lt;-</span> <span class="fu">bpm</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">flat</span>())</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>fit_jeff  <span class="ot">&lt;-</span> <span class="fu">bpm</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">jeffreys</span>())</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>fit_logf  <span class="ot">&lt;-</span> <span class="fu">bpm</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>))</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>fit_ridge <span class="ot">&lt;-</span> <span class="fu">bpm</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">bridge</span>())</span></code></pre></div>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>fit_flat  <span class="ot">&lt;-</span> <span class="fu">bpmfit</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">flat</span>())</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>fit_jeff  <span class="ot">&lt;-</span> <span class="fu">bpmfit</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">jeffreys</span>())</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>fit_logf  <span class="ot">&lt;-</span> <span class="fu">bpmfit</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>))</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>fit_ridge <span class="ot">&lt;-</span> <span class="fu">bpmfit</span>(form, <span class="at">data =</span> dat, <span class="at">prior =</span> <span class="fu">bridge</span>())</span></code></pre></div>
 <p>Compare coefficient estimates across priors:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>coef_tab <span class="ot">&lt;-</span> <span class="fu">sapply</span>(</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">flat =</span> fit_flat, <span class="at">jeffreys =</span> fit_jeff, <span class="at">logf2 =</span> fit_logf, <span class="at">ridge =</span> fit_ridge),</span>
@@ -424,12 +424,12 @@ inequality).</p>
 </div>
 <div id="pm-projection-for-simplified-deployment-equations" class="section level2">
 <h2>PM projection for simplified deployment equations</h2>
-<p><code>project_pm()</code> regresses the posterior-mean soft labels
-back onto a design matrix, producing a standalone
-<code>bpm_proj_pm</code> object with no covariance matrix. It can use
-the same predictors as the main model (self-projection) or a simpler
-custom formula.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>proj <span class="ot">&lt;-</span> <span class="fu">project_pm</span>(fit_logf)</span>
+<p><code>bpmproject()</code> with type=‘pm’ regresses the posterior-mean
+soft labels back onto a design matrix, producing a standalone
+<code>bpmproj_pm</code> object with no covariance matrix. It can use the
+same predictors as the main model (self-projection) or a simpler custom
+formula.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>proj <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit_logf, <span class="at">type=</span><span class="st">&quot;pm&quot;</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">coef</span>(proj), <span class="dv">3</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; (Intercept)         age         sbp     sexmale    killipII   killipIII </span></span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;      -3.886       0.017      -0.006       0.322       0.374       1.150</span></span>
@@ -443,7 +443,7 @@ independently of the original fit.</p>
 <h2>Model summary</h2>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">summary</span>(fit_logf)</span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; bpm(formula = form, data = dat, prior = log_f(m = 2))</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; bpmfit(formula = form, data = dat, prior = log_f(m = 2))</span></span>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; Prior: Prior: log-F(m = 2) </span></span>
 <span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; Fit method: data_augmentation </span></span>

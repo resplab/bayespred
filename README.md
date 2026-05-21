@@ -20,7 +20,7 @@ base R at deployment time.
 | log-F(m, m)        | `log_f(m = 2)` | data augmentation + `glm.fit` |
 | Bayesian Ridge     | `bridge()`     | `mgcv::gam` + REML            |
 
-Three prediction methods on a `bpm` object:
+Three prediction methods on a `bpmfit` object:
 
 | Method | Argument | Description |
 |----|----|----|
@@ -49,7 +49,7 @@ d <- data.frame(x1 = rnorm(500), x2 = rnorm(500),
                 y  = rbinom(500, 1, 0.25))
 
 # Fit under log-F(2) prior (default)
-fit <- bpm(y ~ x1 + x2, data = d, prior = log_f(m = 2))
+fit <- bpmfit(y ~ x1 + x2, data = d, prior = log_f(m = 2))
 
 # New patient — plain values, no need to specify factor levels
 new_pt <- data.frame(x1 = 0.5, x2 = -1.2)
@@ -67,7 +67,7 @@ predict(fit, new_pt, interval = 0.95)
 priors <- list(flat = flat(), jeffreys = jeffreys(),
                logf = log_f(m = 2), ridge = bridge())
 sapply(priors, function(p) {
-  predict(bpm(y ~ x1 + x2, data = d, prior = p), new_pt)
+  predict(bpmfit(y ~ x1 + x2, data = d, prior = p), new_pt)
 })
 #>      flat  jeffreys      logf     ridge 
 #> 0.2212171 0.2229100 0.2214141 0.2415931
@@ -75,8 +75,8 @@ sapply(priors, function(p) {
 
 ## PM projection
 
-`project_pm()` regresses the posterior-mean soft labels onto a design
-matrix, producing a standalone `bpm_proj_pm` object — a simplified
+`bpmproj_pm()` regresses the posterior-mean soft labels onto a design
+matrix, producing a standalone `bpmproj_pm` object — a simplified
 deployable model with no covariance matrix. All three aspects default to
 the main fit but can be overridden: `formula` (predictor set), `family`
 (link function), and `data` (can be the development sample, local site
@@ -84,7 +84,7 @@ data, or any external dataset).
 
 ``` r
 # Self-projection: same predictors as the main model
-proj <- project_pm(fit)
+proj <- bpmproj_pm(fit)
 coef(proj)
 #> (Intercept)          x1          x2 
 #>  -1.0187703  -0.1398351   0.1387906
@@ -92,7 +92,7 @@ predict(proj, new_pt)
 #> [1] 0.221795
 
 # Custom projection: reduce to a single predictor
-proj_simple <- project_pm(fit, formula = ~ x1, data = d)
+proj_simple <- bpmproj_pm(fit, formula = ~ x1, data = d)
 coef(proj_simple)
 #> (Intercept)          x1 
 #>  -1.0199888  -0.1451582
@@ -100,8 +100,8 @@ predict(proj_simple, new_pt)
 #> [1] 0.251135
 ```
 
-The `bpm_proj_pm` object is fully self-contained and requires only base
-R at deployment time.
+The `bpmproj_pm` object is fully self-contained and requires only base R
+at deployment time.
 
 ## Portability
 

@@ -1,8 +1,8 @@
 ---
-title: "Pragmatic Bayesian Prediction Modelling with BayesCPM"
+title: "Pragmatic Bayesian Prediction Modelling with bayespred"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Pragmatic Bayesian Prediction Modelling with BayesCPM}
+  %\VignetteIndexEntry{Pragmatic Bayesian Prediction Modelling with bayespred}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -13,7 +13,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 ## Overview
 
-`BayesCPM` implements the pragmatic Bayesian workflow for clinical prediction
+`bayespred` implements the pragmatic Bayesian workflow for clinical prediction
 modelling described in Sadatsafavi & Riley (2026). The key insight is that the
 *posterior mean* (PM) predicted probability — rather than the plug-in estimate
 (PE) — is the correct target at deployment time under a proper scoring rule.
@@ -48,10 +48,10 @@ cat(sprintf("n = %d,  events = %d (%.1f%%)\n",
 ```{r fit-all}
 form <- outcome ~ age + sbp + sex + killip
 
-fit_flat  <- bpm(form, data = dat, prior = flat())
-fit_jeff  <- bpm(form, data = dat, prior = jeffreys())
-fit_logf  <- bpm(form, data = dat, prior = log_f(m = 2))
-fit_ridge <- bpm(form, data = dat, prior = bridge())
+fit_flat  <- bpmfit(form, data = dat, prior = flat())
+fit_jeff  <- bpmfit(form, data = dat, prior = jeffreys())
+fit_logf  <- bpmfit(form, data = dat, prior = log_f(m = 2))
+fit_ridge <- bpmfit(form, data = dat, prior = bridge())
 ```
 
 Compare coefficient estimates across priors:
@@ -95,13 +95,13 @@ predict(fit_logf, sam, method = "pm_mackay")
 
 ## PM projection for simplified deployment equations
 
-`project_pm()` regresses the posterior-mean soft labels back onto a design
-matrix, producing a standalone `bpm_proj_pm` object with no covariance matrix.
+`bpmproject()` with type='pm' regresses the posterior-mean soft labels back onto a design
+matrix, producing a standalone `bpmproj_pm` object with no covariance matrix.
 It can use the same predictors as the main model (self-projection) or a simpler
 custom formula.
 
-```{r projpred}
-proj <- project_pm(fit_logf)
+```{r bpmproj-pm}
+proj <- bpmproject(fit_logf, type="pm")
 round(coef(proj), 3)
 
 predict(proj, sam)

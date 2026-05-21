@@ -1,4 +1,4 @@
 library(testthat)
-library(BayesCPM)
+library(bayespred)
 
-test_check("BayesCPM")
+test_check("bayespred")
