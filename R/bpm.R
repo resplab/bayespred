@@ -2,7 +2,7 @@
 #'
 #' Fits a logistic regression model under one of four shrinkage priors and
 #' returns a self-contained `bpm` object that can be used with
-#' [predict.bpm()] using base R only at deployment time.
+#' [predict.bpmfit()] using base R only at deployment time.
 #'
 #' @param formula A model formula (same syntax as [stats::glm()]).
 #' @param data A data frame containing the variables in `formula`.
@@ -14,7 +14,7 @@
 #'   returned object (used by `predict()` when `newdata` is absent).
 #' @param ... Currently unused.
 #'
-#' @return An object of class `"bpm"` with components:
+#' @return An object of class `"bpmfit"` with components:
 #' \describe{
 #'   \item{`coefficients`}{Named numeric vector of fitted coefficients.}
 #'   \item{`vcov`}{Posterior covariance matrix (Laplace approximation).}
@@ -29,7 +29,7 @@
 #'   \item{`fit_method`}{Internal tag identifying the fitting backend.}
 #' }
 #'
-#' @seealso [predict.bpm()], [flat()], [jeffreys()], [log_f()], [bridge()]
+#' @seealso [predict.bpmfit()], [flat()], [jeffreys()], [log_f()], [bridge()]
 #'
 #' @examples
 #' set.seed(1)
@@ -84,6 +84,6 @@ bpm <- function(formula, data,
       model      = if (isTRUE(model)) mf else NULL,
       fit_method = fit_result$fit_method
     ),
-    class = "bpm"
+    class = "bpmfit"
   )
 }

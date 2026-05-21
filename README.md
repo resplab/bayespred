@@ -1,13 +1,13 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# BayesCPM
+# bayespred
 
 <!-- badges: start -->
 
 <!-- badges: end -->
 
-`BayesCPM` implements the pragmatic Bayesian workflow for clinical
+`bayespred` implements the pragmatic Bayesian workflow for clinical
 prediction modelling described in Sadatsafavi & Riley (2026). It fits
 logistic regression under four shrinkage priors and produces
 **self-contained** model objects whose `predict()` method requires only
@@ -36,13 +36,13 @@ install.packages(c("mgcv", "brglm2"))
 
 # Install from GitHub
 # install.packages("pak")
-pak::pak("resplab/BayesCPM")
+pak::pak("resplab/bayespred")
 ```
 
 ## Quick start
 
 ``` r
-library(BayesCPM)
+library(bayespred)
 
 set.seed(1)
 d <- data.frame(x1 = rnorm(500), x2 = rnorm(500),

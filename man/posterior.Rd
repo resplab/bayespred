@@ -7,7 +7,7 @@
 posterior(object, ...)
 }
 \arguments{
-\item{object}{A model object (e.g. \code{bpm}).}
+\item{object}{A model object (e.g. \code{bpmfit}).}
 
 \item{...}{Currently unused.}
 }

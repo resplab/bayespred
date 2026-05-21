@@ -1,7 +1,7 @@
 #' Project a bpm model onto a simplified linear predictor (PM method)
 #'
 #' Computes posterior-mean (PM) predictions on the development sample and
-#' regresses them onto a design matrix, producing a standalone `bpm_proj_pm`
+#' regresses them onto a design matrix, producing a standalone `bpmproj_pm`
 #' object with no covariance matrix. All three aspects of the projection model
 #' default to the main `bpm` fit but can be overridden independently:
 #'
@@ -18,10 +18,10 @@
 #'   stored on `object` is used (requires `model = TRUE` at fit time).
 #'
 #' The returned object is self-contained and can be saved and deployed with
-#' [predict.bpm_proj_pm()] using base R only — no dependency on the original
+#' [predict.bpmproj_pm()] using base R only — no dependency on the original
 #' fit or on `mgcv` / `brglm2`.
 #'
-#' @param object A `bpm` object.
+#' @param object A `bpmfit` object.
 #' @param formula Formula for the projection model. `NULL` (default) uses the
 #'   same formula as `object`. A one- or two-sided formula (LHS is ignored)
 #'   overrides this, e.g. `~ age + sex`.
@@ -33,15 +33,15 @@
 #'   `object$family`.
 #' @param ... Currently unused.
 #'
-#' @return An object of class `"bpm_proj_pm"` with elements `coefficients`,
+#' @return An object of class `"bpmproj_pm"` with elements `coefficients`,
 #'   `terms`, `contrasts`, `xlevels`, `family`, and `call`.
 #'
-#' @seealso [predict.bpm_proj_pm()]
+#' @seealso [predict.bpmproj_pm()]
 #' @export
 project_pm <- function(object, ...) UseMethod("project_pm")
 
 #' @export
-project_pm.bpm <- function(object, formula = NULL, data = NULL,
+project_pm.bpmfit <- function(object, formula = NULL, data = NULL,
                             family = NULL, ...) {
   cl          <- match.call()
   proj_family <- if (is.null(family)) object$family else family
@@ -76,7 +76,7 @@ project_pm.bpm <- function(object, formula = NULL, data = NULL,
         family       = proj_family,
         call         = cl
       ),
-      class = "bpm_proj_pm"
+      class = "bpmproj_pm"
     )
 
   } else {
@@ -110,7 +110,7 @@ project_pm.bpm <- function(object, formula = NULL, data = NULL,
         family       = proj_family,
         call         = cl
       ),
-      class = "bpm_proj_pm"
+      class = "bpmproj_pm"
     )
   }
 }
@@ -119,7 +119,7 @@ project_pm.bpm <- function(object, formula = NULL, data = NULL,
 
 #' Predict from a PM-projected model
 #'
-#' @param object A `bpm_proj_pm` object returned by [project_pm()].
+#' @param object A `bpmproj_pm` object returned by [project_pm()].
 #' @param newdata A data frame of new observations.
 #' @param type `"response"` (default) for predicted probability;
 #'   `"link"` for the linear predictor.
@@ -129,7 +129,7 @@ project_pm.bpm <- function(object, formula = NULL, data = NULL,
 #' @return A numeric vector.
 #' @seealso [project_pm()]
 #' @export
-predict.bpm_proj_pm <- function(object, newdata,
+predict.bpmproj_pm <- function(object, newdata,
                                  type      = c("response", "link"),
                                  na.action = na.pass, ...) {
   type <- match.arg(type)
@@ -141,17 +141,17 @@ predict.bpm_proj_pm <- function(object, newdata,
   as.numeric(object$family$linkinv(eta))
 }
 
-#' Extract coefficients from a bpm_proj_pm object
-#' @param object A `bpm_proj_pm` object.
+#' Extract coefficients from a bpmproj_pm object
+#' @param object A `bpmproj_pm` object.
 #' @param ... Ignored.
 #' @export
-coef.bpm_proj_pm <- function(object, ...) object$coefficients
+coef.bpmproj_pm <- function(object, ...) object$coefficients
 
-#' Print a bpm_proj_pm object
-#' @param x A `bpm_proj_pm` object.
+#' Print a bpmproj_pm object
+#' @param x A `bpmproj_pm` object.
 #' @param ... Ignored.
 #' @export
-print.bpm_proj_pm <- function(x, ...) {
+print.bpmproj_pm <- function(x, ...) {
   cat("PM-Projected Prediction Model\n\n")
   cat("Call:\n"); print(x$call); cat("\n")
   cat("Coefficients:\n")

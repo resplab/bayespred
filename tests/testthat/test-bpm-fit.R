@@ -1,6 +1,6 @@
 test_that("bpm returns a bpm object with expected fields", {
   fit <- bpm(y ~ x1 + x2, data = toy, prior = flat())
-  expect_s3_class(fit, "bpm")
+  expect_s3_class(fit, "bpmfit")
   expected <- c("coefficients", "vcov", "family", "prior", "formula",
                 "terms", "contrasts", "xlevels", "call", "model",
                 "fit_method")
@@ -21,14 +21,14 @@ test_that("flat prior: vcov matches glm()", {
 
 test_that("jeffreys prior: converges and returns named coefs", {
   fit <- bpm(y ~ x1 + x2, data = toy, prior = jeffreys())
-  expect_s3_class(fit, "bpm")
+  expect_s3_class(fit, "bpmfit")
   expect_false(anyNA(coef(fit)))
   expect_named(coef(fit), c("(Intercept)", "x1", "x2"))
 })
 
 test_that("log_f prior: converges and returns named coefs", {
   fit <- bpm(y ~ x1 + x2, data = toy, prior = log_f(m = 2))
-  expect_s3_class(fit, "bpm")
+  expect_s3_class(fit, "bpmfit")
   expect_false(anyNA(coef(fit)))
 })
 
@@ -40,7 +40,7 @@ test_that("log_f prior: larger m shrinks slopes more toward 0", {
 
 test_that("bridge prior: converges and returns named coefs", {
   fit <- bpm(y ~ x1 + x2, data = toy, prior = bridge())
-  expect_s3_class(fit, "bpm")
+  expect_s3_class(fit, "bpmfit")
   expect_false(anyNA(coef(fit)))
   expect_named(coef(fit), c("(Intercept)", "x1", "x2"))
 })

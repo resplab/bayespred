@@ -5,7 +5,7 @@
 #' output scale and `se.fit` requests standard errors. The additional `method`
 #' argument selects the Bayesian computation used for `type = "response"`.
 #'
-#' @param object A `bpm` object.
+#' @param object A `bpmfit` object.
 #' @param newdata A data frame of new observations. If omitted, predictions are
 #'   made on the training data (requires `model = TRUE` at fit time).
 #' @param type Character string controlling the output scale (same as
@@ -30,11 +30,11 @@
 #'   \eqn{\sqrt{x^\top V x}}. For `type = "response"`, `se.fit` is the
 #'   delta-method approximation \eqn{\hat\mu(1-\hat\mu)\sqrt{x^\top V x}}
 #'   evaluated at the plug-in mean. Default `FALSE`.
-#' @param interval Either `NULL` (point predictions only, the default) or a
-#'   numeric scalar in (0, 1) giving credible interval coverage (e.g. `0.95`).
-#'   The interval is computed on the linear-predictor scale (normal
-#'   approximation) and back-transformed via `plogis` for `type = "response"`.
-#'   Cannot be combined with `se.fit = TRUE`.
+#' @param interval Either `NULL` (point predictions only, the default), `0`
+#'   (return `fit` and `se.link` without bounds), or a numeric scalar in (0, 1)
+#'   giving credible interval coverage (e.g. `0.95`). Intervals are computed on
+#'   the linear-predictor scale (normal approximation) and back-transformed via
+#'   `plogis` for `type = "response"`. Cannot be combined with `se.fit = TRUE`.
 #' @param dispersion Ignored. Included for compatibility with
 #'   [stats::predict.glm()]; the binomial dispersion is always 1.
 #' @param na.action Function to handle `NA`s in `newdata`. Default
@@ -44,10 +44,12 @@
 #' @return
 #' \itemize{
 #'   \item If `interval = NULL` and `se.fit = FALSE`: a numeric vector.
-#'   \item If `interval` is specified: a data frame with columns `fit`,
+#'   \item If `interval = 0`: a data frame with columns `fit` and `se.link`
+#'     only — no bounds. Useful when you need the SE without a specific
+#'     coverage level.
+#'   \item If `interval` is in (0, 1): a data frame with columns `fit`,
 #'     `lwr`, `upr`, and `se.link` (SE of the linear predictor,
-#'     \eqn{\sqrt{x^\top V x}}). `se.link` is included automatically because
-#'     it is computed regardless and is the fundamental uncertainty quantity.
+#'     \eqn{\sqrt{x^\top V x}}).
 #'   \item If `se.fit = TRUE`: a list with elements `fit`, `se.fit`, and
 #'     `residual.scale` (1 for binomial), matching [stats::predict.glm()].
 #' }
@@ -75,7 +77,7 @@
 #' predict(fit, data.frame(x = 0.5), type = "link",   interval = 0.95)
 #'
 #' @export
-predict.bpm <- function(object, newdata,
+predict.bpmfit <- function(object, newdata,
                         type       = c("response", "link", "terms"),
                         method     = c("pm", "pe", "pm_mackay"),
                         se.fit     = FALSE,
@@ -124,8 +126,12 @@ predict.bpm <- function(object, newdata,
   if (type == "link") {
     if (!is.null(interval)) {
       if (!is.numeric(interval) || length(interval) != 1L ||
-          interval <= 0 || interval >= 1)
-        stop("`interval` must be a single number in (0, 1).", call. = FALSE)
+          interval < 0 || interval >= 1)
+        stop("`interval` must be 0 (SE only) or a single number in (0, 1).",
+             call. = FALSE)
+      if (interval == 0)
+        return(data.frame(fit = eta, se.link = sigma,
+                          row.names = rownames(X_new)))
       z <- qnorm(1 - (1 - interval) / 2)
       return(data.frame(fit     = eta,
                         lwr     = eta - z * sigma,
@@ -147,8 +153,12 @@ predict.bpm <- function(object, newdata,
 
   if (!is.null(interval)) {
     if (!is.numeric(interval) || length(interval) != 1L ||
-        interval <= 0 || interval >= 1)
-      stop("`interval` must be a single number in (0, 1).", call. = FALSE)
+        interval < 0 || interval >= 1)
+      stop("`interval` must be 0 (SE only) or a single number in (0, 1).",
+           call. = FALSE)
+    if (interval == 0)
+      return(data.frame(fit = fit, se.link = sigma,
+                        row.names = rownames(X_new)))
     z <- qnorm(1 - (1 - interval) / 2)
     return(data.frame(fit     = fit,
                       lwr     = plogis(eta - z * sigma),

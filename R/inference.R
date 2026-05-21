@@ -20,7 +20,7 @@
 #' For the `flat()` prior the likelihood and posterior are identical, so the
 #' stored coefficients and vcov are returned directly without refitting.
 #'
-#' @param object A model object (e.g. `bpm`).
+#' @param object A model object (e.g. `bpmfit`).
 #' @param data Data frame of the development sample. Required when `object` was
 #'   fitted with `model = FALSE`; ignored when the model frame is available.
 #' @param ... Currently unused.
@@ -40,7 +40,7 @@ likelihood <- function(object, ...) UseMethod("likelihood")
 #' the quantities used for prediction. These incorporate both the likelihood
 #' and the prior.
 #'
-#' @param object A model object (e.g. `bpm`).
+#' @param object A model object (e.g. `bpmfit`).
 #' @param ... Currently unused.
 #' @return A named list with elements `coefficients` (MAP), `vcov`
 #'   (posterior covariance), and `family` (the family object, carrying the
@@ -53,7 +53,7 @@ posterior <- function(object, ...) UseMethod("posterior")
 
 #' @rdname likelihood
 #' @export
-likelihood.bpm <- function(object, data = NULL, ...) {
+likelihood.bpmfit <- function(object, data = NULL, ...) {
   # Flat prior: likelihood == posterior, no refitting needed.
   if (inherits(object$prior, "prior_flat"))
     return(list(coefficients = object$coefficients,
@@ -87,7 +87,7 @@ likelihood.bpm <- function(object, data = NULL, ...) {
 }
 
 #' @export
-posterior.bpm <- function(object, ...) {
+posterior.bpmfit <- function(object, ...) {
   list(coefficients = object$coefficients,
        vcov         = object$vcov,
        family       = object$family)

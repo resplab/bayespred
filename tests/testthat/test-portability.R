@@ -11,7 +11,7 @@ test_that("flat-prior bpm survives save/reload and predicts identically", {
   expect_equal(pred_before, pred_after)
 })
 
-test_that("bpm_proj_pm survives save/reload and predicts identically", {
+test_that("bpmproj_pm survives save/reload and predicts identically", {
   proj        <- project_pm(bpm(y ~ x1 + x2, data = toy, prior = log_f(m = 2)))
   pred_before <- predict(proj, new1)
   tmp <- tempfile(fileext = ".rds")

@@ -2,15 +2,15 @@
 % Please edit documentation in R/inference.R
 \name{likelihood}
 \alias{likelihood}
-\alias{likelihood.bpm}
+\alias{likelihood.bpmfit}
 \title{Extract the likelihood contribution from a model}
 \usage{
 likelihood(object, ...)
 
-\method{likelihood}{bpm}(object, data = NULL, ...)
+\method{likelihood}{bpmfit}(object, data = NULL, ...)
 }
 \arguments{
-\item{object}{A model object (e.g. \code{bpm}).}
+\item{object}{A model object (e.g. \code{bpmfit}).}
 
 \item{...}{Currently unused.}
 

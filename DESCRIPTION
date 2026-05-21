@@ -1,4 +1,4 @@
-Package: BayesCPM
+Package: bayespred
 Type: Package
 Title: Pragmatic Bayesian Workflow for Clinical Prediction Modelling
 Version: 0.1.0
@@ -10,7 +10,7 @@ Description: Implements the pragmatic Bayesian workflow for clinical prediction
     modelling described in Sadatsafavi & Riley (2026). Fits logistic regression
     under four shrinkage priors (flat, Jeffreys, log-F, Bayesian Ridge) and
     computes the posterior mean of predicted probability via Gauss-Hermite
-    quadrature, MacKay approximation, or self-projection. The resulting 'bpm'
+    quadrature, MacKay approximation, or self-projection. The resulting 'bpmfit'
     objects are self-contained: prediction at deployment time requires only
     base R, with no dependency on mgcv or brglm2.
 License: MIT + file LICENSE

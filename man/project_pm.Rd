@@ -7,7 +7,7 @@
 project_pm(object, ...)
 }
 \arguments{
-\item{object}{A \code{bpm} object.}
+\item{object}{A \code{bpmfit} object.}
 
 \item{...}{Currently unused.}
 
@@ -24,12 +24,12 @@ used (requires \code{model = TRUE} at fit time).}
 \code{object$family}.}
 }
 \value{
-An object of class \code{"bpm_proj_pm"} with elements \code{coefficients},
+An object of class \code{"bpmproj_pm"} with elements \code{coefficients},
 \code{terms}, \code{contrasts}, \code{xlevels}, \code{family}, and \code{call}.
 }
 \description{
 Computes posterior-mean (PM) predictions on the development sample and
-regresses them onto a design matrix, producing a standalone \code{bpm_proj_pm}
+regresses them onto a design matrix, producing a standalone \code{bpmproj_pm}
 object with no covariance matrix. All three aspects of the projection model
 default to the main \code{bpm} fit but can be overridden independently:
 }
@@ -49,9 +49,9 @@ stored on \code{object} is used (requires \code{model = TRUE} at fit time).
 }
 
 The returned object is self-contained and can be saved and deployed with
-\code{\link[=predict.bpm_proj_pm]{predict.bpm_proj_pm()}} using base R only — no dependency on the original
+\code{\link[=predict.bpmproj_pm]{predict.bpmproj_pm()}} using base R only — no dependency on the original
 fit or on \code{mgcv} / \code{brglm2}.
 }
 \seealso{
-\code{\link[=predict.bpm_proj_pm]{predict.bpm_proj_pm()}}
+\code{\link[=predict.bpmproj_pm]{predict.bpmproj_pm()}}
 }

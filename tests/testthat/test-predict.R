@@ -127,8 +127,33 @@ test_that("wider interval is wider than narrower interval", {
 
 test_that("predict errors when interval is out of range", {
   fit <- bpm(y ~ x1, data = toy, prior = flat())
-  expect_error(predict(fit, new1, interval = 1.2), "interval")
-  expect_error(predict(fit, new1, interval = 0),   "interval")
+  expect_error(predict(fit, new1, interval = 1.2),  "interval")
+  expect_error(predict(fit, new1, interval = -0.1), "interval")
+})
+
+test_that("interval = 0 returns fit and se.link only (type = 'response')", {
+  fit <- bpm(y ~ x1 + x2, data = toy, prior = flat())
+  out <- predict(fit, new1, interval = 0)
+  expect_s3_class(out, "data.frame")
+  expect_named(out, c("fit", "se.link"))
+  expect_true(out$fit > 0 && out$fit < 1)
+  expect_true(out$se.link > 0)
+})
+
+test_that("interval = 0 returns fit and se.link only (type = 'link')", {
+  fit <- bpm(y ~ x1 + x2, data = toy, prior = flat())
+  out <- predict(fit, new1, type = "link", interval = 0)
+  expect_s3_class(out, "data.frame")
+  expect_named(out, c("fit", "se.link"))
+  expect_true(is.finite(out$fit))
+  expect_true(out$se.link > 0)
+})
+
+test_that("interval = 0 se.link matches the se.link from a full interval", {
+  fit  <- bpm(y ~ x1 + x2, data = toy, prior = flat())
+  se0  <- predict(fit, new1, interval = 0)$se.link
+  se95 <- predict(fit, new1, interval = 0.95)$se.link
+  expect_equal(se0, se95)
 })
 
 # ---- multi-row and edge cases ------------------------------------------------

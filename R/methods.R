@@ -1,8 +1,8 @@
 #' Print a bpm object
-#' @param x A `bpm` object.
+#' @param x A `bpmfit` object.
 #' @param ... Ignored.
 #' @export
-print.bpm <- function(x, ...) {
+print.bpmfit <- function(x, ...) {
   cat("Bayesian Prediction Model (bpm)\n\n")
   cat("Call:\n"); print(x$call); cat("\n")
   cat("Prior: "); print(x$prior)
@@ -21,11 +21,11 @@ print.bpm <- function(x, ...) {
 #'
 #' Returns a coefficient table analogous to `summary.glm`.
 #'
-#' @param object A `bpm` object.
+#' @param object A `bpmfit` object.
 #' @param ... Ignored.
-#' @return An object of class `"summary.bpm"`, printed via `print.summary.bpm`.
+#' @return An object of class `"summary.bpmfit"`, printed via `print.summary.bpmfit`.
 #' @export
-summary.bpm <- function(object, ...) {
+summary.bpmfit <- function(object, ...) {
   beta <- object$coefficients
   se   <- sqrt(diag(object$vcov))
   zval <- beta / se
@@ -49,12 +49,12 @@ summary.bpm <- function(object, ...) {
       n_events     = if (!is.null(y)) sum(y)    else NA_integer_,
       coefficients = coef_table
     ),
-    class = "summary.bpm"
+    class = "summary.bpmfit"
   )
 }
 
 #' @export
-print.summary.bpm <- function(x, ...) {
+print.summary.bpmfit <- function(x, ...) {
   cat("Call:\n"); print(x$call); cat("\n")
   cat("Prior: "); print(x$prior)
   cat("Fit method:", x$fit_method, "\n")
@@ -68,16 +68,16 @@ print.summary.bpm <- function(x, ...) {
 
 #' Extract coefficients from a bpm object
 #'
-#' @param object A `bpm` object.
+#' @param object A `bpmfit` object.
 #' @param ... Ignored.
 #' @export
-coef.bpm <- function(object, ...) object$coefficients
+coef.bpmfit <- function(object, ...) object$coefficients
 
 #' Extract the posterior covariance matrix from a bpm object
 #'
-#' @param object A `bpm` object.
+#' @param object A `bpmfit` object.
 #' @param ... Ignored.
 #' @export
-vcov.bpm <- function(object, ...) {
+vcov.bpmfit <- function(object, ...) {
   object$vcov
 }

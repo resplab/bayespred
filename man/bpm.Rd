@@ -30,7 +30,7 @@ returned object (used by \code{predict()} when \code{newdata} is absent).}
 \item{...}{Currently unused.}
 }
 \value{
-An object of class \code{"bpm"} with components:
+An object of class \code{"bpmfit"} with components:
 \describe{
 \item{\code{coefficients}}{Named numeric vector of fitted coefficients.}
 \item{\code{vcov}}{Posterior covariance matrix (Laplace approximation).}
@@ -48,7 +48,7 @@ An object of class \code{"bpm"} with components:
 \description{
 Fits a logistic regression model under one of four shrinkage priors and
 returns a self-contained \code{bpm} object that can be used with
-\code{\link[=predict.bpm]{predict.bpm()}} using base R only at deployment time.
+\code{\link[=predict.bpmfit]{predict.bpmfit()}} using base R only at deployment time.
 }
 \examples{
 set.seed(1)
@@ -58,5 +58,5 @@ predict(fit, data.frame(x = 0.5))
 
 }
 \seealso{
-\code{\link[=predict.bpm]{predict.bpm()}}, \code{\link[=flat]{flat()}}, \code{\link[=jeffreys]{jeffreys()}}, \code{\link[=log_f]{log_f()}}, \code{\link[=bridge]{bridge()}}
+\code{\link[=predict.bpmfit]{predict.bpmfit()}}, \code{\link[=flat]{flat()}}, \code{\link[=jeffreys]{jeffreys()}}, \code{\link[=log_f]{log_f()}}, \code{\link[=bridge]{bridge()}}
 }
