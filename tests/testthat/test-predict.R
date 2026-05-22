@@ -57,19 +57,19 @@ test_that("se.fit and interval cannot be combined", {
 
 # ---- type = "link" with interval ---------------------------------------------
 
-test_that("type='link' with interval returns symmetric data frame with se.link", {
+test_that("type='link' with interval returns symmetric data frame with se.fit", {
   fit <- bpmfit(y ~ x1 + x2, data = toy, prior = flat())
   out <- predict(fit, new1, type = "link", interval = 0.95)
   expect_s3_class(out, "data.frame")
-  expect_named(out, c("fit", "lwr", "upr", "se.link"))
+  expect_named(out, c("fit", "lwr", "upr", "se.fit"))
   # Symmetric around fit on the link scale
   expect_equal(out$fit - out$lwr, out$upr - out$fit, tolerance = 1e-10)
   expect_true(out$lwr < out$fit && out$fit < out$upr)
-  # se.link is positive
-  expect_true(out$se.link > 0)
-  # lwr/upr are consistent with se.link
+  # se.fit is positive
+  expect_true(out$se.fit > 0)
+  # lwr/upr are consistent with se.fit
   z <- qnorm(0.975)
-  expect_equal(out$lwr, out$fit - z * out$se.link, tolerance = 1e-10)
+  expect_equal(out$lwr, out$fit - z * out$se.fit, tolerance = 1e-10)
 })
 
 test_that("type='response' with interval has asymmetric bounds (logistic transform)", {
@@ -108,13 +108,13 @@ test_that("method is ignored when type = 'link'", {
 
 # ---- interval ----------------------------------------------------------------
 
-test_that("response interval: correct columns including se.link, lwr < fit < upr", {
+test_that("response interval: correct columns including se.fit, lwr < fit < upr", {
   fit <- bpmfit(y ~ x1 + x2, data = toy, prior = flat())
   out <- predict(fit, new1, interval = 0.95)
   expect_s3_class(out, "data.frame")
-  expect_named(out, c("fit", "lwr", "upr", "se.link"))
+  expect_named(out, c("fit", "lwr", "upr", "se.fit"))
   expect_true(out$lwr < out$fit && out$fit < out$upr)
-  expect_true(out$se.link > 0)
+  expect_true(out$se.fit > 0)
 })
 
 test_that("wider interval is wider than narrower interval", {
@@ -131,28 +131,28 @@ test_that("predict errors when interval is out of range", {
   expect_error(predict(fit, new1, interval = -0.1), "interval")
 })
 
-test_that("interval = 0 returns fit and se.link only (type = 'response')", {
+test_that("interval = 0 returns fit and se.fit only (type = 'response')", {
   fit <- bpmfit(y ~ x1 + x2, data = toy, prior = flat())
   out <- predict(fit, new1, interval = 0)
   expect_s3_class(out, "data.frame")
-  expect_named(out, c("fit", "se.link"))
+  expect_named(out, c("fit", "se.fit"))
   expect_true(out$fit > 0 && out$fit < 1)
-  expect_true(out$se.link > 0)
+  expect_true(out$se.fit > 0)
 })
 
-test_that("interval = 0 returns fit and se.link only (type = 'link')", {
+test_that("interval = 0 returns fit and se.fit only (type = 'link')", {
   fit <- bpmfit(y ~ x1 + x2, data = toy, prior = flat())
   out <- predict(fit, new1, type = "link", interval = 0)
   expect_s3_class(out, "data.frame")
-  expect_named(out, c("fit", "se.link"))
+  expect_named(out, c("fit", "se.fit"))
   expect_true(is.finite(out$fit))
-  expect_true(out$se.link > 0)
+  expect_true(out$se.fit > 0)
 })
 
-test_that("interval = 0 se.link matches the se.link from a full interval", {
+test_that("interval = 0 se.fit matches the se.fit from a full interval", {
   fit  <- bpmfit(y ~ x1 + x2, data = toy, prior = flat())
-  se0  <- predict(fit, new1, interval = 0)$se.link
-  se95 <- predict(fit, new1, interval = 0.95)$se.link
+  se0  <- predict(fit, new1, interval = 0)$se.fit
+  se95 <- predict(fit, new1, interval = 0.95)$se.fit
   expect_equal(se0, se95)
 })
 
@@ -164,10 +164,10 @@ test_that("predict on multiple rows returns correct length / nrow", {
   expect_length(predict(fit, newdf), 3L)
   out_r <- predict(fit, newdf, interval = 0.95)
   expect_equal(nrow(out_r), 3L)
-  expect_named(out_r, c("fit", "lwr", "upr", "se.link"))
+  expect_named(out_r, c("fit", "lwr", "upr", "se.fit"))
   out_l <- predict(fit, newdf, type = "link", interval = 0.95)
   expect_equal(nrow(out_l), 3L)
-  expect_named(out_l, c("fit", "lwr", "upr", "se.link"))
+  expect_named(out_l, c("fit", "lwr", "upr", "se.fit"))
 })
 
 test_that("predict without newdata works when model = TRUE", {

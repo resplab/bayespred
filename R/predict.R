@@ -7,6 +7,16 @@
   var_eta <- as.numeric(rowSums((X_new %*% V) * X_new))
   sigma   <- sqrt(pmax(var_eta, 0))
 
+  # SE on the same scale as `type`, matching predict.glm() convention.
+  # link:     SE of the linear predictor = sigma = sqrt(x'Vx)
+  # response: delta-method SE of the probability = mu(1-mu) * sigma
+  se_fit <- if (type == "link") {
+    sigma
+  } else {
+    mu_pe <- plogis(eta)
+    mu_pe * (1 - mu_pe) * sigma
+  }
+
   # ---- type = "link" ----------------------------------------------------------
   if (type == "link") {
     if (!is.null(interval)) {
@@ -15,17 +25,17 @@
         stop("`interval` must be 0 (SE only) or a single number in (0, 1).",
              call. = FALSE)
       if (interval == 0)
-        return(data.frame(fit = eta, se.link = sigma,
+        return(data.frame(fit = eta, se.fit = se_fit,
                           row.names = rownames(X_new)))
       z <- qnorm(1 - (1 - interval) / 2)
-      return(data.frame(fit     = eta,
-                        lwr     = eta - z * sigma,
-                        upr     = eta + z * sigma,
-                        se.link = sigma,
+      return(data.frame(fit    = eta,
+                        lwr    = eta - z * sigma,
+                        upr    = eta + z * sigma,
+                        se.fit = se_fit,
                         row.names = rownames(X_new)))
     }
     if (isTRUE(se.fit))
-      return(list(fit = eta, se.fit = sigma, residual.scale = 1))
+      return(list(fit = eta, se.fit = se_fit, residual.scale = 1))
     return(eta)
   }
 
@@ -42,21 +52,18 @@
       stop("`interval` must be 0 (SE only) or a single number in (0, 1).",
            call. = FALSE)
     if (interval == 0)
-      return(data.frame(fit = fit, se.link = sigma,
+      return(data.frame(fit = fit, se.fit = se_fit,
                         row.names = rownames(X_new)))
     z <- qnorm(1 - (1 - interval) / 2)
-    return(data.frame(fit     = fit,
-                      lwr     = plogis(eta - z * sigma),
-                      upr     = plogis(eta + z * sigma),
-                      se.link = sigma,
+    return(data.frame(fit    = fit,
+                      lwr    = plogis(eta - z * sigma),
+                      upr    = plogis(eta + z * sigma),
+                      se.fit = se_fit,
                       row.names = rownames(X_new)))
   }
 
-  if (isTRUE(se.fit)) {
-    mu_pe  <- plogis(eta)
-    se_fit <- mu_pe * (1 - mu_pe) * sigma
+  if (isTRUE(se.fit))
     return(list(fit = fit, se.fit = se_fit, residual.scale = 1))
-  }
 
   fit
 }
@@ -157,13 +164,12 @@ predict.bpm <- function(object, newdata,
 #'   \item{`"pm_mackay"`}{MacKay (1992) closed-form approximation to the PM.}
 #' }
 #' @param se.fit Logical. If `TRUE`, return a list with elements `fit`,
-#'   `se.fit`, and `residual.scale`, matching the structure of
-#'   [stats::predict.glm()]. For `type = "link"`, `se.fit` is
-#'   \eqn{\sqrt{x^\top V x}}. For `type = "response"`, `se.fit` is the
-#'   delta-method approximation \eqn{\hat\mu(1-\hat\mu)\sqrt{x^\top V x}}
-#'   evaluated at the plug-in mean. Default `FALSE`.
+#'   `se.fit`, and `residual.scale`, matching [stats::predict.glm()].
+#'   `se.fit` is on the same scale as `type`: for `"link"` it is
+#'   \eqn{\sqrt{x^\top V x}}; for `"response"` it is the delta-method
+#'   approximation \eqn{\hat\mu(1-\hat\mu)\sqrt{x^\top V x}}. Default `FALSE`.
 #' @param interval Either `NULL` (point predictions only, the default), `0`
-#'   (return `fit` and `se.link` without bounds), or a numeric scalar in (0, 1)
+#'   (return `fit` and `se.fit` without bounds), or a numeric scalar in (0, 1)
 #'   giving credible interval coverage (e.g. `0.95`). Intervals are computed on
 #'   the linear-predictor scale (normal approximation) and back-transformed via
 #'   `plogis` for `type = "response"`. Cannot be combined with `se.fit = TRUE`.
@@ -176,10 +182,10 @@ predict.bpm <- function(object, newdata,
 #' @return
 #' \itemize{
 #'   \item If `interval = NULL` and `se.fit = FALSE`: a numeric vector.
-#'   \item If `interval = 0`: a data frame with columns `fit` and `se.link`
-#'     only — no bounds.
+#'   \item If `interval = 0`: a data frame with columns `fit` and `se.fit`
+#'     only — no bounds. `se.fit` is on the same scale as `type`.
 #'   \item If `interval` is in (0, 1): a data frame with columns `fit`,
-#'     `lwr`, `upr`, and `se.link`.
+#'     `lwr`, `upr`, and `se.fit` (on the same scale as `type`).
 #'   \item If `se.fit = TRUE`: a list with elements `fit`, `se.fit`, and
 #'     `residual.scale` (1 for binomial).
 #' }

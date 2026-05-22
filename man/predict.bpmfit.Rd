@@ -41,14 +41,13 @@ relevant when \code{type = "response"}:
 }}
 
 \item{se.fit}{Logical. If \code{TRUE}, return a list with elements \code{fit},
-\code{se.fit}, and \code{residual.scale}, matching the structure of
-\code{\link[stats:predict.glm]{stats::predict.glm()}}. For \code{type = "link"}, \code{se.fit} is
-\eqn{\sqrt{x^\top V x}}. For \code{type = "response"}, \code{se.fit} is the
-delta-method approximation \eqn{\hat\mu(1-\hat\mu)\sqrt{x^\top V x}}
-evaluated at the plug-in mean. Default \code{FALSE}.}
+\code{se.fit}, and \code{residual.scale}, matching \code{\link[stats:predict.glm]{stats::predict.glm()}}.
+\code{se.fit} is on the same scale as \code{type}: for \code{"link"} it is
+\eqn{\sqrt{x^\top V x}}; for \code{"response"} it is the delta-method
+approximation \eqn{\hat\mu(1-\hat\mu)\sqrt{x^\top V x}}. Default \code{FALSE}.}
 
 \item{interval}{Either \code{NULL} (point predictions only, the default), \code{0}
-(return \code{fit} and \code{se.link} without bounds), or a numeric scalar in (0, 1)
+(return \code{fit} and \code{se.fit} without bounds), or a numeric scalar in (0, 1)
 giving credible interval coverage (e.g. \code{0.95}). Intervals are computed on
 the linear-predictor scale (normal approximation) and back-transformed via
 \code{plogis} for \code{type = "response"}. Cannot be combined with \code{se.fit = TRUE}.}
@@ -64,10 +63,10 @@ the linear-predictor scale (normal approximation) and back-transformed via
 \value{
 \itemize{
 \item If \code{interval = NULL} and \code{se.fit = FALSE}: a numeric vector.
-\item If \code{interval = 0}: a data frame with columns \code{fit} and \code{se.link}
-only — no bounds.
+\item If \code{interval = 0}: a data frame with columns \code{fit} and \code{se.fit}
+only — no bounds. \code{se.fit} is on the same scale as \code{type}.
 \item If \code{interval} is in (0, 1): a data frame with columns \code{fit},
-\code{lwr}, \code{upr}, and \code{se.link}.
+\code{lwr}, \code{upr}, and \code{se.fit} (on the same scale as \code{type}).
 \item If \code{se.fit = TRUE}: a list with elements \code{fit}, \code{se.fit}, and
 \code{residual.scale} (1 for binomial).
 }
