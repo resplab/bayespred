@@ -44,33 +44,37 @@ pak::pak("resplab/bayespred")
 ``` r
 library(bayespred)
 
-set.seed(1)
-d <- data.frame(x1 = rnorm(500), x2 = rnorm(500),
-                y  = rbinom(500, 1, 0.25))
+# Low birth weight study (Hosmer & Lemeshow 1989), shipped with R via MASS
+data(birthwt, package = "MASS")
+birthwt$race <- factor(birthwt$race, levels = 1:3,
+                       labels = c("white", "black", "other"))
 
 # Fit under log-F(2) prior (default)
-fit <- bpmfit(y ~ x1 + x2, data = d, prior = log_f(m = 2))
+fit <- bpmfit(low ~ age + lwt + race + smoke + ht + ui,
+              data = birthwt, prior = log_f(m = 2))
 
-# New patient — plain values, no need to specify factor levels
-new_pt <- data.frame(x1 = 0.5, x2 = -1.2)
+# New patient
+new_pt <- data.frame(age = 26, lwt = 130, race = "white",
+                     smoke = 1, ht = 0, ui = 0)
 
 # Posterior mean (recommended)
 predict(fit, new_pt)
-#> [1] 0.2214141
+#> [1] 0.2609625
 
 # With 95% credible interval
 predict(fit, new_pt, interval = 0.95)
 #>         fit       lwr       upr     se.fit
-#> 1 0.2214141 0.1695492 0.2806577 0.02836095
+#> 1 0.2609625 0.1589038 0.3869804 0.05872089
 
 # Compare all four priors
 priors <- list(flat = flat(), jeffreys = jeffreys(),
                logf = log_f(m = 2), ridge = bridge())
 sapply(priors, function(p) {
-  predict(bpmfit(y ~ x1 + x2, data = d, prior = p), new_pt)
+  predict(bpmfit(low ~ age + lwt + race + smoke + ht + ui,
+                 data = birthwt, prior = p), new_pt)
 })
 #>      flat  jeffreys      logf     ridge 
-#> 0.2212171 0.2229100 0.2214141 0.2415931
+#> 0.2493921 0.2581651 0.2609625 0.2691777
 ```
 
 ## PM projection
@@ -85,24 +89,28 @@ the development sample, local site data, or any external dataset).
 # Self-projection: same predictors as the main model
 proj <- bpmproject(fit)
 coef(proj)
-#> (Intercept)          x1          x2 
-#>  -1.0187703  -0.1398351   0.1387906
+#> (Intercept)         age         lwt   raceblack   raceother       smoke 
+#>  0.44166751 -0.01964943 -0.01408265  1.04757057  0.73220901  0.87796708 
+#>          ht          ui 
+#>  1.46541520  0.77642062
 predict(proj, new_pt)
-#> [1] 0.221795
+#> [1] 0.2646391
 
-# Custom projection: reduce to a single predictor
-proj_simple <- bpmproject(fit, formula = ~ x1, data = d)
+# Custom projection: reduce to key predictors
+proj_simple <- bpmproject(fit, formula = ~ lwt + smoke + ht, data = birthwt)
 coef(proj_simple)
-#> (Intercept)          x1 
-#>  -1.0199888  -0.1451582
+#> (Intercept)         lwt       smoke          ht 
+#>  0.89934199 -0.01592838  0.61634750  1.45267675
 predict(proj_simple, new_pt)
-#> [1] 0.251135
+#> [1] 0.3647052
 
 # Linear probability model — useful for nomograms
 proj_linear <- bpmproject(fit, family = gaussian(link = "identity"))
 coef(proj_linear)
-#> (Intercept)          x1          x2 
-#>  0.26720772 -0.02698917  0.02670374
+#>  (Intercept)          age          lwt    raceblack    raceother        smoke 
+#>  0.525533333 -0.002728915 -0.002519029  0.194795303  0.130626195  0.164639888 
+#>           ht           ui 
+#>  0.300494513  0.168657481
 ```
 
 The object returned by `bpmproject()` is fully self-contained and
@@ -123,7 +131,7 @@ post <- posterior(fit)     # bpm object: MAP + posterior covariance + link
 
 # predict() works directly on the bpm object (newdata always required)
 predict(post, new_pt)
-#> [1] 0.2214141
+#> [1] 0.2609625
 ```
 
 ## Reference

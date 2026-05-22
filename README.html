@@ -682,33 +682,37 @@ time.</p>
 <h2 id="quick-start">Quick start</h2>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(bayespred)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x1 =</span> <span class="fu">rnorm</span>(<span class="dv">500</span>), <span class="at">x2 =</span> <span class="fu">rnorm</span>(<span class="dv">500</span>),</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>                <span class="at">y  =</span> <span class="fu">rbinom</span>(<span class="dv">500</span>, <span class="dv">1</span>, <span class="fl">0.25</span>))</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># Fit under log-F(2) prior (default)</span></span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">bpmfit</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> d, <span class="at">prior =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>))</span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co"># New patient — plain values, no need to specify factor levels</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>new_pt <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x1 =</span> <span class="fl">0.5</span>, <span class="at">x2 =</span> <span class="sc">-</span><span class="fl">1.2</span>)</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># Posterior mean (recommended)</span></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt)</span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.2214141</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># With 95% credible interval</span></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt, <span class="at">interval =</span> <span class="fl">0.95</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;         fit       lwr       upr     se.fit</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; 1 0.2214141 0.1695492 0.2806577 0.02836095</span></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a></span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co"># Compare all four priors</span></span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">flat =</span> <span class="fu">flat</span>(), <span class="at">jeffreys =</span> <span class="fu">jeffreys</span>(),</span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>               <span class="at">logf =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>), <span class="at">ridge =</span> <span class="fu">bridge</span>())</span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="fu">sapply</span>(priors, <span class="cf">function</span>(p) {</span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="fu">bpmfit</span>(y <span class="sc">~</span> x1 <span class="sc">+</span> x2, <span class="at">data =</span> d, <span class="at">prior =</span> p), new_pt)</span>
-<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>})</span>
-<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;      flat  jeffreys      logf     ridge </span></span>
-<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt; 0.2212171 0.2229100 0.2214141 0.2415931</span></span></code></pre></div>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Low birth weight study (Hosmer &amp; Lemeshow 1989), shipped with R via MASS</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">data</span>(birthwt, <span class="at">package =</span> <span class="st">&quot;MASS&quot;</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>birthwt<span class="sc">$</span>race <span class="ot">&lt;-</span> <span class="fu">factor</span>(birthwt<span class="sc">$</span>race, <span class="at">levels =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>                       <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">&quot;white&quot;</span>, <span class="st">&quot;black&quot;</span>, <span class="st">&quot;other&quot;</span>))</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># Fit under log-F(2) prior (default)</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">bpmfit</span>(low <span class="sc">~</span> age <span class="sc">+</span> lwt <span class="sc">+</span> race <span class="sc">+</span> smoke <span class="sc">+</span> ht <span class="sc">+</span> ui,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>              <span class="at">data =</span> birthwt, <span class="at">prior =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>))</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co"># New patient</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>new_pt <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">age =</span> <span class="dv">26</span>, <span class="at">lwt =</span> <span class="dv">130</span>, <span class="at">race =</span> <span class="st">&quot;white&quot;</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>                     <span class="at">smoke =</span> <span class="dv">1</span>, <span class="at">ht =</span> <span class="dv">0</span>, <span class="at">ui =</span> <span class="dv">0</span>)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co"># Posterior mean (recommended)</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt)</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; [1] 0.2609625</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co"># With 95% credible interval</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt, <span class="at">interval =</span> <span class="fl">0.95</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt;         fit       lwr       upr     se.fit</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt; 1 0.2609625 0.1589038 0.3869804 0.05872089</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co"># Compare all four priors</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">flat =</span> <span class="fu">flat</span>(), <span class="at">jeffreys =</span> <span class="fu">jeffreys</span>(),</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>               <span class="at">logf =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>), <span class="at">ridge =</span> <span class="fu">bridge</span>())</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="fu">sapply</span>(priors, <span class="cf">function</span>(p) {</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="fu">bpmfit</span>(low <span class="sc">~</span> age <span class="sc">+</span> lwt <span class="sc">+</span> race <span class="sc">+</span> smoke <span class="sc">+</span> ht <span class="sc">+</span> ui,</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>                 <span class="at">data =</span> birthwt, <span class="at">prior =</span> p), new_pt)</span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>})</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="co">#&gt;      flat  jeffreys      logf     ridge </span></span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co">#&gt; 0.2493921 0.2581651 0.2609625 0.2691777</span></span></code></pre></div>
 <h2 id="pm-projection">PM projection</h2>
 <p><code>bpmproject()</code> regresses the posterior-mean soft labels
 onto a design matrix, producing a standalone deployable model with no
@@ -719,24 +723,28 @@ local site data, or any external dataset).</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Self-projection: same predictors as the main model</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>proj <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit)</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">coef</span>(proj)</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)          x1          x2 </span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;  -1.0187703  -0.1398351   0.1387906</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="fu">predict</span>(proj, new_pt)</span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; [1] 0.221795</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Custom projection: reduce to a single predictor</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>proj_simple <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit, <span class="at">formula =</span> <span class="sc">~</span> x1, <span class="at">data =</span> d)</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">coef</span>(proj_simple)</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)          x1 </span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;  -1.0199888  -0.1451582</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="fu">predict</span>(proj_simple, new_pt)</span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.251135</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co"># Linear probability model — useful for nomograms</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>proj_linear <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit, <span class="at">family =</span> <span class="fu">gaussian</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>))</span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="fu">coef</span>(proj_linear)</span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; (Intercept)          x1          x2 </span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt;  0.26720772 -0.02698917  0.02670374</span></span></code></pre></div>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)         age         lwt   raceblack   raceother       smoke </span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;  0.44166751 -0.01964943 -0.01408265  1.04757057  0.73220901  0.87796708 </span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt;          ht          ui </span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt;  1.46541520  0.77642062</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">predict</span>(proj, new_pt)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; [1] 0.2646391</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co"># Custom projection: reduce to key predictors</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>proj_simple <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit, <span class="at">formula =</span> <span class="sc">~</span> lwt <span class="sc">+</span> smoke <span class="sc">+</span> ht, <span class="at">data =</span> birthwt)</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="fu">coef</span>(proj_simple)</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; (Intercept)         lwt       smoke          ht </span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt;  0.89934199 -0.01592838  0.61634750  1.45267675</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="fu">predict</span>(proj_simple, new_pt)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; [1] 0.3647052</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co"># Linear probability model — useful for nomograms</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>proj_linear <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit, <span class="at">family =</span> <span class="fu">gaussian</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>))</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="fu">coef</span>(proj_linear)</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt;  (Intercept)          age          lwt    raceblack    raceother        smoke </span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt;  0.525533333 -0.002728915 -0.002519029  0.194795303  0.130626195  0.164639888 </span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt;           ht           ui </span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt;  0.300494513  0.168657481</span></span></code></pre></div>
 <p>The object returned by <code>bpmproject()</code> is fully
 self-contained and requires only base R at deployment time.</p>
 <h2 id="likelihood-and-posterior">Likelihood and posterior</h2>
@@ -751,7 +759,7 @@ self-contained and can be used with <code>predict()</code> directly.</p>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># predict() works directly on the bpm object (newdata always required)</span></span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">predict</span>(post, new_pt)</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 0.2214141</span></span></code></pre></div>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 0.2609625</span></span></code></pre></div>
 <h2 id="reference">Reference</h2>
 <p>Sadatsafavi M, Riley RD (2026). Progression to the mean: A practical
 Bayesian workflow for the development and deployment of clinical
