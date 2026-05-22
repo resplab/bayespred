@@ -698,8 +698,8 @@ time.</p>
 <span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
 <span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># With 95% credible interval</span></span>
 <span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt, <span class="at">interval =</span> <span class="fl">0.95</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;         fit       lwr       upr   se.link</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; 1 0.2214141 0.1695492 0.2806577 0.1652133</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;         fit       lwr       upr     se.fit</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; 1 0.2214141 0.1695492 0.2806577 0.02836097</span></span>
 <span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a></span>
 <span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co"># Compare all four priors</span></span>
 <span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">flat =</span> <span class="fu">flat</span>(), <span class="at">jeffreys =</span> <span class="fu">jeffreys</span>(),</span>
@@ -752,8 +752,9 @@ prediction.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>lik  <span class="ot">&lt;-</span> <span class="fu">likelihood</span>(fit)   <span class="co"># unpenalised MLE (computes on-the-fly)</span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">posterior</span>(fit)    <span class="co"># MAP + posterior covariance</span></span></code></pre></div>
 <h2 id="reference">Reference</h2>
-<p>Sadatsafavi M, Riley RD (2026). A practical Bayesian workflow for
-clinical prediction modelling.</p>
+<p>Sadatsafavi M, Riley RD (2026). Progression to the mean: A practical
+Bayesian workflow for the development and deployment of clinical
+prediction models <em>[<a href="https://arxiv.org/abs/2605.19163">https://arxiv.org/abs/2605.19163</a>]</em>.</p>
 
 </body>
 </html>

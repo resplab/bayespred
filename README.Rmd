@@ -127,5 +127,4 @@ post <- posterior(fit)    # MAP + posterior covariance
 
 ## Reference
 
-Sadatsafavi M, Riley RD (2026). A practical Bayesian workflow for clinical
-prediction modelling.
+Sadatsafavi M, Riley RD (2026). Progression to the mean: A practical Bayesian workflow for the development and deployment of clinical prediction models *[https://arxiv.org/abs/2605.19163]*.

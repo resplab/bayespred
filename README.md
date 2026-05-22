@@ -60,8 +60,8 @@ predict(fit, new_pt)
 
 # With 95% credible interval
 predict(fit, new_pt, interval = 0.95)
-#>         fit       lwr       upr   se.link
-#> 1 0.2214141 0.1695492 0.2806577 0.1652133
+#>         fit       lwr       upr     se.fit
+#> 1 0.2214141 0.1695492 0.2806577 0.02836097
 
 # Compare all four priors
 priors <- list(flat = flat(), jeffreys = jeffreys(),
@@ -130,5 +130,6 @@ post <- posterior(fit)    # MAP + posterior covariance
 
 ## Reference
 
-Sadatsafavi M, Riley RD (2026). A practical Bayesian workflow for
-clinical prediction modelling.
+Sadatsafavi M, Riley RD (2026). Progression to the mean: A practical
+Bayesian workflow for the development and deployment of clinical
+prediction models *\[<https://arxiv.org/abs/2605.19163>\]*.
