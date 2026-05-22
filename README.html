@@ -699,7 +699,7 @@ time.</p>
 <span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co"># With 95% credible interval</span></span>
 <span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt, <span class="at">interval =</span> <span class="fl">0.95</span>)</span>
 <span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;         fit       lwr       upr     se.fit</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; 1 0.2214141 0.1695492 0.2806577 0.02836097</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; 1 0.2214141 0.1695492 0.2806577 0.02836095</span></span>
 <span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a></span>
 <span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co"># Compare all four priors</span></span>
 <span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">flat =</span> <span class="fu">flat</span>(), <span class="at">jeffreys =</span> <span class="fu">jeffreys</span>(),</span>
@@ -710,15 +710,14 @@ time.</p>
 <span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;      flat  jeffreys      logf     ridge </span></span>
 <span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt; 0.2212171 0.2229100 0.2214141 0.2415931</span></span></code></pre></div>
 <h2 id="pm-projection">PM projection</h2>
-<p><code>bpmproj_pm()</code> regresses the posterior-mean soft labels
-onto a design matrix, producing a standalone <code>bpmproj_pm</code>
-object — a simplified deployable model with no covariance matrix. All
-three aspects default to the main fit but can be overridden:
-<code>formula</code> (predictor set), <code>family</code> (link
-function), and <code>data</code> (can be the development sample, local
-site data, or any external dataset).</p>
+<p><code>bpmproject()</code> regresses the posterior-mean soft labels
+onto a design matrix, producing a standalone deployable model with no
+covariance matrix. All three aspects default to the main fit but can be
+overridden: <code>formula</code> (predictor set), <code>family</code>
+(link function), and <code>data</code> (can be the development sample,
+local site data, or any external dataset).</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Self-projection: same predictors as the main model</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>proj <span class="ot">&lt;-</span> <span class="fu">bpmproj_pm</span>(fit)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>proj <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit)</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">coef</span>(proj)</span>
 <span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)          x1          x2 </span></span>
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;  -1.0187703  -0.1398351   0.1387906</span></span>
@@ -726,31 +725,33 @@ site data, or any external dataset).</p>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; [1] 0.221795</span></span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Custom projection: reduce to a single predictor</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>proj_simple <span class="ot">&lt;-</span> <span class="fu">bpmproj_pm</span>(fit, <span class="at">formula =</span> <span class="sc">~</span> x1, <span class="at">data =</span> d)</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>proj_simple <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit, <span class="at">formula =</span> <span class="sc">~</span> x1, <span class="at">data =</span> d)</span>
 <span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="fu">coef</span>(proj_simple)</span>
 <span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)          x1 </span></span>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;  -1.0199888  -0.1451582</span></span>
 <span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="fu">predict</span>(proj_simple, new_pt)</span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.251135</span></span></code></pre></div>
-<p>The <code>bpmproj_pm</code> object is fully self-contained and
-requires only base R at deployment time.</p>
-<h2 id="portability">Portability</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>tmp <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="at">fileext =</span> <span class="st">&quot;.rds&quot;</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">saveRDS</span>(fit, tmp)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># In any R session — base R only needed at predict time:</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(tmp)</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">predict</span>(fit2, new_pt)</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; [1] 0.2214141</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">unlink</span>(tmp)</span></code></pre></div>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; [1] 0.251135</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co"># Linear probability model — useful for nomograms</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>proj_linear <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit, <span class="at">family =</span> <span class="fu">gaussian</span>(<span class="at">link =</span> <span class="st">&quot;identity&quot;</span>))</span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="fu">coef</span>(proj_linear)</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; (Intercept)          x1          x2 </span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt;  0.26720772 -0.02698917  0.02670374</span></span></code></pre></div>
+<p>The object returned by <code>bpmproject()</code> is fully
+self-contained and requires only base R at deployment time.</p>
 <h2 id="likelihood-and-posterior">Likelihood and posterior</h2>
 <p>For multi-centre or federated settings, <code>likelihood()</code>
 returns the unpenalised MLE and observed Fisher information — the data’s
 contribution independent of the prior. <code>posterior()</code> returns
-the MAP estimate and Laplace-approximated covariance used for
-prediction.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>lik  <span class="ot">&lt;-</span> <span class="fu">likelihood</span>(fit)   <span class="co"># unpenalised MLE (computes on-the-fly)</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">posterior</span>(fit)    <span class="co"># MAP + posterior covariance</span></span></code></pre></div>
+the <code>bpm</code> object: the MAP estimate, Laplace-approximated
+covariance, and link function. A <code>bpm</code> object is
+self-contained and can be used with <code>predict()</code> directly.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>lik  <span class="ot">&lt;-</span> <span class="fu">likelihood</span>(fit)    <span class="co"># unpenalised MLE (computes on-the-fly)</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">posterior</span>(fit)     <span class="co"># bpm object: MAP + posterior covariance + link</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># predict() works directly on the bpm object (newdata always required)</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">predict</span>(post, new_pt)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 0.2214141</span></span></code></pre></div>
 <h2 id="reference">Reference</h2>
 <p>Sadatsafavi M, Riley RD (2026). Progression to the mean: A practical
 Bayesian workflow for the development and deployment of clinical

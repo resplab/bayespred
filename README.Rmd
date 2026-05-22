@@ -80,49 +80,45 @@ sapply(priors, function(p) {
 
 ## PM projection
 
-`bpmproj_pm()` regresses the posterior-mean soft labels onto a design matrix,
-producing a standalone `bpmproj_pm` object — a simplified deployable model
-with no covariance matrix. All three aspects default to the main fit but can
-be overridden: `formula` (predictor set), `family` (link function), and `data`
-(can be the development sample, local site data, or any external dataset).
+`bpmproject()` regresses the posterior-mean soft labels onto a design matrix,
+producing a standalone deployable model with no covariance matrix. All three
+aspects default to the main fit but can be overridden: `formula` (predictor
+set), `family` (link function), and `data` (can be the development sample,
+local site data, or any external dataset).
 
-```{r bpmproj-pm}
+```{r bpmproject}
 # Self-projection: same predictors as the main model
-proj <- bpmproj_pm(fit)
+proj <- bpmproject(fit)
 coef(proj)
 predict(proj, new_pt)
 
 # Custom projection: reduce to a single predictor
-proj_simple <- bpmproj_pm(fit, formula = ~ x1, data = d)
+proj_simple <- bpmproject(fit, formula = ~ x1, data = d)
 coef(proj_simple)
 predict(proj_simple, new_pt)
+
+# Linear probability model — useful for nomograms
+proj_linear <- bpmproject(fit, family = gaussian(link = "identity"))
+coef(proj_linear)
 ```
 
-The `bpmproj_pm` object is fully self-contained and requires only base R at
-deployment time.
-
-## Portability
-
-```{r portability}
-tmp <- tempfile(fileext = ".rds")
-saveRDS(fit, tmp)
-
-# In any R session — base R only needed at predict time:
-fit2 <- readRDS(tmp)
-predict(fit2, new_pt)
-unlink(tmp)
-```
+The object returned by `bpmproject()` is fully self-contained and requires only
+base R at deployment time.
 
 ## Likelihood and posterior
 
 For multi-centre or federated settings, `likelihood()` returns the unpenalised
 MLE and observed Fisher information — the data's contribution independent of
-the prior. `posterior()` returns the MAP estimate and Laplace-approximated
-covariance used for prediction.
+the prior. `posterior()` returns the `bpm` object: the MAP estimate,
+Laplace-approximated covariance, and link function. A `bpm` object is
+self-contained and can be used with `predict()` directly.
 
 ```{r federated}
-lik  <- likelihood(fit)   # unpenalised MLE (computes on-the-fly)
-post <- posterior(fit)    # MAP + posterior covariance
+lik  <- likelihood(fit)    # unpenalised MLE (computes on-the-fly)
+post <- posterior(fit)     # bpm object: MAP + posterior covariance + link
+
+# predict() works directly on the bpm object (newdata always required)
+predict(post, new_pt)
 ```
 
 ## Reference
