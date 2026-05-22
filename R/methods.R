@@ -11,21 +11,22 @@
 print.bpm <- function(x, ...) {
   cat("Bayesian Prediction Model posterior (bpm)\n")
   cat("Family:", x$family$family, "/", x$family$link, "\n\n")
-  se  <- sqrt(diag(x$vcov))
-  tab <- cbind(Estimate = x$coefficients, `Std. Error` = se)
-  print(round(tab, 4))
-  cat("\n(Use summary() for the full posterior covariance matrix.)\n")
+  cat("Coefficients:\n")
+  print(round(x$coefficients, 4))
+  cat("\nPosterior covariance matrix:\n")
+  print(round(x$vcov, 6))
   invisible(x)
 }
 
 #' Summarise a bpm posterior object
 #'
-#' Prints the coefficient table and the full posterior covariance matrix.
+#' Returns a structured summary of the `bpm` object for programmatic access.
+#' Printing produces the same output as [print.bpm()].
 #'
 #' @param object A `bpm` object.
 #' @param ... Ignored.
-#' @return An object of class `"summary.bpm"`, printed via
-#'   `print.summary.bpm`.
+#' @return An object of class `"summary.bpm"` with elements `family`,
+#'   `coefficients` (table with Estimate and Std. Error), and `vcov`.
 #' @export
 summary.bpm <- function(object, ...) {
   se  <- sqrt(diag(object$vcov))

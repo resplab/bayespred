@@ -3,55 +3,17 @@
 #' Unified entry point for all projection methods. Dispatches to the
 #' appropriate method based on `type`:
 #'
-#' * `"pm"` — posterior-mean projection (see [bpmproj_pm()] for full
-#'   documentation of the extra arguments).
+#' * `"pm"` — posterior-mean projection: computes PM soft labels on the
+#'   development sample and regresses them onto a design matrix. The result is
+#'   a self-contained `bpmproj_pm` object requiring only base R at deployment.
 #' * `"full"` — full Bayesian projection (not yet implemented).
 #'
 #' @param object A `bpmfit` object.
 #' @param type Character. Projection method. `"pm"` (default) for
 #'   posterior-mean projection; `"full"` is reserved for future use.
-#' @param ... Passed to the method-specific function.
-#'
-#' @return For `type = "pm"`, a `bpmproj_pm` object (see [bpmproj_pm()]).
-#' @seealso [bpmproj_pm()], [predict.bpmproj_pm()]
-#' @export
-bpmproject <- function(object, type = c("pm", "full"), ...) {
-  type <- match.arg(type)
-  switch(type,
-    pm   = bpmproj_pm(object, ...),
-    full = stop('type = "full" projection is not yet implemented.', call. = FALSE)
-  )
-}
-
-# ------------------------------------------------------------------------------
-
-#' Project a bpmfit model onto a simplified linear predictor (PM method)
-#'
-#' Computes posterior-mean (PM) predictions on the development sample and
-#' regresses them onto a design matrix, producing a standalone `bpmproj_pm`
-#' object with no covariance matrix. All three aspects of the projection model
-#' default to the main `bpmfit` object but can be overridden independently:
-#'
-#' * **`formula`** — defaults to the main model's formula (self-projection).
-#'   Supply a simpler or different formula to project onto a reduced predictor
-#'   set, e.g. `~ age + sex`.
-#' * **`family`** — defaults to `object$posterior$family` (same link as the
-#'   main model). Override to project onto a different link function.
-#' * **`data`** — the sample used both to compute PM predictions (always via
-#'   the main model's coefficients and vcov) and to fit the projection formula.
-#'   Can be the original development sample, or a different dataset entirely —
-#'   for example, local data from a new site, enabling domain-specific
-#'   projection without refitting the main model. When omitted, the model frame
-#'   stored on `object` is used (requires `model = TRUE` at fit time).
-#'
-#' The returned object is self-contained and can be saved and deployed with
-#' [predict.bpmproj_pm()] using base R only — no dependency on the original
-#' fit or on `mgcv` / `brglm2`.
-#'
-#' @param object A `bpmfit` object.
 #' @param formula Formula for the projection model. `NULL` (default) uses the
-#'   same formula as `object`. A one- or two-sided formula (LHS is ignored)
-#'   overrides this, e.g. `~ age + sex`.
+#'   same formula as `object` (self-projection). A one- or two-sided formula
+#'   (LHS is ignored) overrides this, e.g. `~ age + sex`.
 #' @param data Data frame used to compute PM predictions and fit the projection.
 #'   Can be the original development sample or a different dataset (e.g. local
 #'   data from a new site). When omitted, the model frame stored on `object` is
@@ -60,17 +22,24 @@ bpmproject <- function(object, type = c("pm", "full"), ...) {
 #'   `object$posterior$family`.
 #' @param ... Currently unused.
 #'
-#' @return An object of class `"bpmproj_pm"` with elements `coefficients`,
-#'   `terms`, `contrasts`, `xlevels`, `family`, and `call`.
-#'
+#' @return For `type = "pm"`, an object of class `"bpmproj_pm"` with elements
+#'   `coefficients`, `terms`, `contrasts`, `xlevels`, `family`, and `call`.
 #' @seealso [predict.bpmproj_pm()]
-#' @keywords internal
-bpmproj_pm <- function(object, ...) UseMethod("bpmproj_pm")
+#' @export
+bpmproject <- function(object, type = c("pm", "full"),
+                       formula = NULL, data = NULL, family = NULL, ...) {
+  type <- match.arg(type)
+  switch(type,
+    pm   = .bpmproj_pm(object, formula = formula, data = data,
+                       family = family, ...),
+    full = stop('type = "full" projection is not yet implemented.', call. = FALSE)
+  )
+}
 
-#' @rdname bpmproj_pm
-#' @exportS3Method
-bpmproj_pm.bpmfit <- function(object, formula = NULL, data = NULL,
-                            family = NULL, ...) {
+# ------------------------------------------------------------------------------
+# Internal PM projection implementation
+
+.bpmproj_pm <- function(object, formula = NULL, data = NULL, family = NULL, ...) {
   cl          <- match.call()
   post        <- object$posterior
   proj_family <- if (is.null(family)) post$family else family
@@ -122,11 +91,11 @@ bpmproj_pm.bpmfit <- function(object, formula = NULL, data = NULL,
     pm  <- .pm_quadrature(mu, sig)
 
     if (length(formula) == 3L) formula <- formula[-2L]
-    proj_terms    <- terms(formula, data = data)
-    mf_proj       <- model.frame(proj_terms, data)
-    X_proj        <- model.matrix(proj_terms, mf_proj)
+    proj_terms     <- terms(formula, data = data)
+    mf_proj        <- model.frame(proj_terms, data)
+    X_proj         <- model.matrix(proj_terms, mf_proj)
     proj_contrasts <- attr(X_proj, "contrasts")
-    proj_xlevels  <- .get_xlevels(proj_terms, mf_proj)
+    proj_xlevels   <- .get_xlevels(proj_terms, mf_proj)
 
     fit <- suppressWarnings(glm.fit(X_proj, pm, family = proj_family))
 
@@ -148,7 +117,7 @@ bpmproj_pm.bpmfit <- function(object, formula = NULL, data = NULL,
 
 #' Predict from a PM-projected model
 #'
-#' @param object A `bpmproj_pm` object returned by [bpmproj_pm()].
+#' @param object A `bpmproj_pm` object returned by [bpmproject()].
 #' @param newdata A data frame of new observations.
 #' @param type `"response"` (default) for predicted probability;
 #'   `"link"` for the linear predictor.
@@ -156,11 +125,11 @@ bpmproj_pm.bpmfit <- function(object, formula = NULL, data = NULL,
 #'   [stats::na.pass].
 #' @param ... Currently unused.
 #' @return A numeric vector.
-#' @seealso [bpmproj_pm()]
+#' @seealso [bpmproject()]
 #' @export
 predict.bpmproj_pm <- function(object, newdata,
-                                 type      = c("response", "link"),
-                                 na.action = na.pass, ...) {
+                               type      = c("response", "link"),
+                               na.action = na.pass, ...) {
   type <- match.arg(type)
   tt   <- delete.response(object$terms)
   mf   <- model.frame(tt, newdata, xlev = object$xlevels, na.action = na.action)

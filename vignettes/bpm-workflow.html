@@ -408,11 +408,11 @@ that mimics a binary 30-day outcome study.</p>
 <div id="credible-intervals" class="section level3">
 <h3>Credible intervals</h3>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">predict</span>(fit_logf, sam, <span class="at">method =</span> <span class="st">&quot;pm&quot;</span>, <span class="at">interval =</span> <span class="fl">0.95</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt;          fit       lwr      upr  se.link</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; 1 0.06556389 0.0368101 0.106911 0.291278</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt;          fit        lwr       upr     se.fit</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; 1 0.06556389 0.03681012 0.1069109 0.01728425</span></span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="fu">predict</span>(fit_logf, sam, <span class="at">method =</span> <span class="st">&quot;pe&quot;</span>, <span class="at">interval =</span> <span class="fl">0.95</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;          fit       lwr      upr  se.link</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 1 0.06335301 0.0368101 0.106911 0.291278</span></span></code></pre></div>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;          fit        lwr       upr     se.fit</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 1 0.06335301 0.03681012 0.1069109 0.01728425</span></span></code></pre></div>
 <p>The PM lies inside but not at the centre of the interval (Jensen’s
 inequality).</p>
 </div>
@@ -451,11 +451,11 @@ independently of the original fit.</p>
 <span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
 <span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; (Intercept) -3.921644   1.033591  -3.794 0.000148 ***</span></span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; age          0.016777   0.009910   1.693 0.090460 .  </span></span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; sbp         -0.006355   0.005830  -1.090 0.275690    </span></span>
-<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; sexmale      0.326633   0.231855   1.409 0.158901    </span></span>
-<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; killipII     0.360758   0.282351   1.278 0.201358    </span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; (Intercept) -3.921644   1.033588  -3.794 0.000148 ***</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; age          0.016777   0.009910   1.693 0.090459 .  </span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; sbp         -0.006355   0.005830  -1.090 0.275689    </span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; sexmale      0.326633   0.231855   1.409 0.158899    </span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; killipII     0.360758   0.282350   1.278 0.201357    </span></span>
 <span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; killipIII    1.139821   0.291125   3.915 9.03e-05 ***</span></span>
 <span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
 <span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>

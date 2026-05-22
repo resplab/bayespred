@@ -3,11 +3,21 @@
 # and family object; returns list(coefficients, vcov, fit_method, converged).
 # vcov is on the original (unstandardised) predictor scale.
 
+# Extract (X'WX)^{-1} from a glm.fit / brglm_fit result, exactly as
+# summary.glm() does it: chol2inv of the upper-triangular R factor stored in
+# the QR decomposition at the final IWLS iteration.
+.vcov_from_fit <- function(fit, nms) {
+  p1 <- seq_len(fit$rank)
+  V  <- chol2inv(fit$qr$qr[p1, p1, drop = FALSE])
+  dimnames(V) <- list(nms, nms)
+  V
+}
+
 .fit_flat <- function(X, y, family) {
   fit <- glm.fit(X, y, family = family)
   list(
     coefficients = fit$coefficients,
-    vcov         = .logistic_vcov(X, fit$fitted.values),
+    vcov         = .vcov_from_fit(fit, colnames(X)),
     fit_method   = "glm",
     converged    = isTRUE(fit$converged)
   )
@@ -18,7 +28,7 @@
                            control = brglm2::brglmControl(type = "AS_mean"))
   list(
     coefficients = fit$coefficients,
-    vcov         = .logistic_vcov(X, fit$fitted.values),
+    vcov         = .vcov_from_fit(fit, colnames(X)),
     fit_method   = "brglmFit",
     converged    = isTRUE(fit$converged)
   )
@@ -52,7 +62,7 @@
   )
   list(
     coefficients = fit$coefficients,
-    vcov         = .logistic_vcov(X_aug, fit$fitted.values, w_aug),
+    vcov         = .vcov_from_fit(fit, colnames(X)),
     fit_method   = "data_augmentation",
     converged    = isTRUE(fit$converged)
   )
@@ -101,8 +111,7 @@
 
   nms         <- colnames(X)
   names(beta) <- nms
-  rownames(V) <- nms
-  colnames(V) <- nms
+  dimnames(V) <- list(nms, nms)
 
   list(
     coefficients = beta,
@@ -110,28 +119,4 @@
     fit_method   = "mgcv_ridge",
     converged    = isTRUE(fit$converged)
   )
-}
-
-# Compute (X^T W X)^{-1} where W_i = mu_i*(1-mu_i)*weight_i.
-# Falls back to SVD pseudoinverse for near-singular matrices.
-.logistic_vcov <- function(X, mu, weights = NULL) {
-  if (is.null(weights)) weights <- rep(1, length(mu))
-  W   <- mu * (1 - mu) * weights
-  XW  <- X * sqrt(W)
-  M   <- crossprod(XW)
-  nms <- colnames(X)
-  V   <- tryCatch(
-    solve(M),
-    error = function(e) {
-      warning("Near-singular information matrix; using SVD pseudoinverse.",
-              call. = FALSE)
-      sv  <- svd(M)
-      tol <- max(sv$d) * .Machine$double.eps * max(dim(M))
-      inv <- ifelse(sv$d > tol, 1 / sv$d, 0)
-      sv$v %*% diag(inv, nrow = length(inv)) %*% t(sv$u)
-    }
-  )
-  rownames(V) <- nms
-  colnames(V) <- nms
-  V
 }

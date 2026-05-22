@@ -12,9 +12,10 @@
 \item{...}{Ignored.}
 }
 \value{
-An object of class \code{"summary.bpm"}, printed via
-\code{print.summary.bpm}.
+An object of class \code{"summary.bpm"} with elements \code{family},
+\code{coefficients} (table with Estimate and Std. Error), and \code{vcov}.
 }
 \description{
-Prints the coefficient table and the full posterior covariance matrix.
+Returns a structured summary of the \code{bpm} object for programmatic access.
+Printing produces the same output as \code{\link[=print.bpm]{print.bpm()}}.
 }

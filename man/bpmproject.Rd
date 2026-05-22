@@ -4,7 +4,14 @@
 \alias{bpmproject}
 \title{Project a bpmfit onto a simplified deployable model}
 \usage{
-bpmproject(object, type = c("pm", "full"), ...)
+bpmproject(
+  object,
+  type = c("pm", "full"),
+  formula = NULL,
+  data = NULL,
+  family = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{A \code{bpmfit} object.}
@@ -12,10 +19,23 @@ bpmproject(object, type = c("pm", "full"), ...)
 \item{type}{Character. Projection method. \code{"pm"} (default) for
 posterior-mean projection; \code{"full"} is reserved for future use.}
 
-\item{...}{Passed to the method-specific function.}
+\item{formula}{Formula for the projection model. \code{NULL} (default) uses the
+same formula as \code{object} (self-projection). A one- or two-sided formula
+(LHS is ignored) overrides this, e.g. \code{~ age + sex}.}
+
+\item{data}{Data frame used to compute PM predictions and fit the projection.
+Can be the original development sample or a different dataset (e.g. local
+data from a new site). When omitted, the model frame stored on \code{object} is
+used (requires \code{model = TRUE} at fit time).}
+
+\item{family}{Family object for the projection fit. \code{NULL} (default) reuses
+\code{object$posterior$family}.}
+
+\item{...}{Currently unused.}
 }
 \value{
-For \code{type = "pm"}, a \code{bpmproj_pm} object (see \code{\link[=bpmproj_pm]{bpmproj_pm()}}).
+For \code{type = "pm"}, an object of class \code{"bpmproj_pm"} with elements
+\code{coefficients}, \code{terms}, \code{contrasts}, \code{xlevels}, \code{family}, and \code{call}.
 }
 \description{
 Unified entry point for all projection methods. Dispatches to the
@@ -23,11 +43,12 @@ appropriate method based on \code{type}:
 }
 \details{
 \itemize{
-\item \code{"pm"} — posterior-mean projection (see \code{\link[=bpmproj_pm]{bpmproj_pm()}} for full
-documentation of the extra arguments).
+\item \code{"pm"} — posterior-mean projection: computes PM soft labels on the
+development sample and regresses them onto a design matrix. The result is
+a self-contained \code{bpmproj_pm} object requiring only base R at deployment.
 \item \code{"full"} — full Bayesian projection (not yet implemented).
 }
 }
 \seealso{
-\code{\link[=bpmproj_pm]{bpmproj_pm()}}, \code{\link[=predict.bpmproj_pm]{predict.bpmproj_pm()}}
+\code{\link[=predict.bpmproj_pm]{predict.bpmproj_pm()}}
 }
