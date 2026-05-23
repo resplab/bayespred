@@ -13,21 +13,6 @@ logistic regression under four shrinkage priors and produces
 **self-contained** model objects whose `predict()` method requires only
 base R at deployment time.
 
-| Prior              | Constructor    | Backend                       |
-|--------------------|----------------|-------------------------------|
-| Flat (unpenalised) | `flat()`       | `glm.fit`                     |
-| Jeffreys           | `jeffreys()`   | `brglm2::brglm_fit`           |
-| log-F(m, m)        | `log_f(m = 2)` | data augmentation + `glm.fit` |
-| Bayesian Ridge     | `bridge()`     | `mgcv::gam` + REML            |
-
-Three prediction methods on a `bpmfit` object:
-
-| Method | Argument | Description |
-|----|----|----|
-| Plug-in | `"pe"` | `plogis(X β̂)` |
-| Posterior mean (quadrature) | `"pm"` *(default)* | 30-point Gauss-Hermite |
-| MacKay approximation | `"pm_mackay"` | Closed-form PM approximation |
-
 ## Installation
 
 ``` r
@@ -57,7 +42,7 @@ fit <- bpmfit(low ~ age + lwt + race + smoke + ht + ui,
 new_pt <- data.frame(age = 26, lwt = 130, race = "white",
                      smoke = 1, ht = 0, ui = 0)
 
-# Posterior mean (recommended)
+# The predict() by default returns the posterior mean (using an accurate quadrature method)
 predict(fit, new_pt)
 #> [1] 0.2609625
 
@@ -65,6 +50,10 @@ predict(fit, new_pt)
 predict(fit, new_pt, interval = 0.95)
 #>         fit       lwr       upr     se.fit
 #> 1 0.2609625 0.1589038 0.3869804 0.05872089
+
+# One can request the plug-in estimate (based on [penalised] maximum likelihood)
+predict(fit, new_pt, method="pe") # pe stand for plug-in estimate
+#> [1] 0.2566956
 
 # Compare all four priors
 priors <- list(flat = flat(), jeffreys = jeffreys(),
@@ -116,20 +105,16 @@ coef(proj_linear)
 The object returned by `bpmproject()` is fully self-contained and
 requires only base R at deployment time.
 
-## Likelihood and posterior
+## Full posterior
 
-For multi-centre or federated settings, `likelihood()` returns the
-unpenalised MLE and observed Fisher information — the data’s
-contribution independent of the prior. `posterior()` returns the `bpm`
-object: the MAP estimate, Laplace-approximated covariance, and link
-function. A `bpm` object is self-contained and can be used with
-`predict()` directly.
+`posterior()` returns a `bpm` object that contains the MAP estimate,
+Laplace-approximated covariance, and link function. A `bpm` object is
+self-contained and can be used with `predict()` directly.
 
 ``` r
-lik  <- likelihood(fit)    # unpenalised MLE (computes on-the-fly)
 post <- posterior(fit)     # bpm object: MAP + posterior covariance + link
 
-# predict() works directly on the bpm object (newdata always required)
+# predict() works directly on the bpm object for a new patient
 predict(post, new_pt)
 #> [1] 0.2609625
 ```

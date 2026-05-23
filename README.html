@@ -614,64 +614,6 @@ clinical prediction modelling described in Sadatsafavi &amp; Riley
 produces <strong>self-contained</strong> model objects whose
 <code>predict()</code> method requires only base R at deployment
 time.</p>
-<table>
-<thead>
-<tr>
-<th>Prior</th>
-<th>Constructor</th>
-<th>Backend</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Flat (unpenalised)</td>
-<td><code>flat()</code></td>
-<td><code>glm.fit</code></td>
-</tr>
-<tr>
-<td>Jeffreys</td>
-<td><code>jeffreys()</code></td>
-<td><code>brglm2::brglm_fit</code></td>
-</tr>
-<tr>
-<td>log-F(m, m)</td>
-<td><code>log_f(m = 2)</code></td>
-<td>data augmentation + <code>glm.fit</code></td>
-</tr>
-<tr>
-<td>Bayesian Ridge</td>
-<td><code>bridge()</code></td>
-<td><code>mgcv::gam</code> + REML</td>
-</tr>
-</tbody>
-</table>
-<p>Three prediction methods on a <code>bpmfit</code> object:</p>
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Argument</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Plug-in</td>
-<td><code>&quot;pe&quot;</code></td>
-<td><code>plogis(X β̂)</code></td>
-</tr>
-<tr>
-<td>Posterior mean (quadrature)</td>
-<td><code>&quot;pm&quot;</code> <em>(default)</em></td>
-<td>30-point Gauss-Hermite</td>
-</tr>
-<tr>
-<td>MacKay approximation</td>
-<td><code>&quot;pm_mackay&quot;</code></td>
-<td>Closed-form PM approximation</td>
-</tr>
-</tbody>
-</table>
 <h2 id="installation">Installation</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># Install dependencies</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">&quot;mgcv&quot;</span>, <span class="st">&quot;brglm2&quot;</span>))</span>
@@ -695,7 +637,7 @@ time.</p>
 <span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>new_pt <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">age =</span> <span class="dv">26</span>, <span class="at">lwt =</span> <span class="dv">130</span>, <span class="at">race =</span> <span class="st">&quot;white&quot;</span>,</span>
 <span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>                     <span class="at">smoke =</span> <span class="dv">1</span>, <span class="at">ht =</span> <span class="dv">0</span>, <span class="at">ui =</span> <span class="dv">0</span>)</span>
 <span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co"># Posterior mean (recommended)</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co"># The predict() by default returns the posterior mean (using an accurate quadrature method)</span></span>
 <span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt)</span>
 <span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; [1] 0.2609625</span></span>
 <span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a></span>
@@ -704,15 +646,19 @@ time.</p>
 <span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt;         fit       lwr       upr     se.fit</span></span>
 <span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt; 1 0.2609625 0.1589038 0.3869804 0.05872089</span></span>
 <span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a></span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co"># Compare all four priors</span></span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">flat =</span> <span class="fu">flat</span>(), <span class="at">jeffreys =</span> <span class="fu">jeffreys</span>(),</span>
-<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>               <span class="at">logf =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>), <span class="at">ridge =</span> <span class="fu">bridge</span>())</span>
-<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="fu">sapply</span>(priors, <span class="cf">function</span>(p) {</span>
-<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="fu">bpmfit</span>(low <span class="sc">~</span> age <span class="sc">+</span> lwt <span class="sc">+</span> race <span class="sc">+</span> smoke <span class="sc">+</span> ht <span class="sc">+</span> ui,</span>
-<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>                 <span class="at">data =</span> birthwt, <span class="at">prior =</span> p), new_pt)</span>
-<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>})</span>
-<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="co">#&gt;      flat  jeffreys      logf     ridge </span></span>
-<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a><span class="co">#&gt; 0.2493921 0.2581651 0.2609625 0.2691777</span></span></code></pre></div>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co"># One can request the plug-in estimate (based on [penalised] maximum likelihood)</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="fu">predict</span>(fit, new_pt, <span class="at">method=</span><span class="st">&quot;pe&quot;</span>) <span class="co"># pe stand for plug-in estimate</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt; [1] 0.2566956</span></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co"># Compare all four priors</span></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>priors <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">flat =</span> <span class="fu">flat</span>(), <span class="at">jeffreys =</span> <span class="fu">jeffreys</span>(),</span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>               <span class="at">logf =</span> <span class="fu">log_f</span>(<span class="at">m =</span> <span class="dv">2</span>), <span class="at">ridge =</span> <span class="fu">bridge</span>())</span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a><span class="fu">sapply</span>(priors, <span class="cf">function</span>(p) {</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="fu">bpmfit</span>(low <span class="sc">~</span> age <span class="sc">+</span> lwt <span class="sc">+</span> race <span class="sc">+</span> smoke <span class="sc">+</span> ht <span class="sc">+</span> ui,</span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>                 <span class="at">data =</span> birthwt, <span class="at">prior =</span> p), new_pt)</span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>})</span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a><span class="co">#&gt;      flat  jeffreys      logf     ridge </span></span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a><span class="co">#&gt; 0.2493921 0.2581651 0.2609625 0.2691777</span></span></code></pre></div>
 <h2 id="pm-projection">PM projection</h2>
 <p><code>bpmproject()</code> regresses the posterior-mean soft labels
 onto a design matrix, producing a standalone deployable model with no
@@ -747,19 +693,16 @@ local site data, or any external dataset).</p>
 <span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt;  0.300494513  0.168657481</span></span></code></pre></div>
 <p>The object returned by <code>bpmproject()</code> is fully
 self-contained and requires only base R at deployment time.</p>
-<h2 id="likelihood-and-posterior">Likelihood and posterior</h2>
-<p>For multi-centre or federated settings, <code>likelihood()</code>
-returns the unpenalised MLE and observed Fisher information — the data’s
-contribution independent of the prior. <code>posterior()</code> returns
-the <code>bpm</code> object: the MAP estimate, Laplace-approximated
-covariance, and link function. A <code>bpm</code> object is
-self-contained and can be used with <code>predict()</code> directly.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>lik  <span class="ot">&lt;-</span> <span class="fu">likelihood</span>(fit)    <span class="co"># unpenalised MLE (computes on-the-fly)</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">posterior</span>(fit)     <span class="co"># bpm object: MAP + posterior covariance + link</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># predict() works directly on the bpm object (newdata always required)</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">predict</span>(post, new_pt)</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 0.2609625</span></span></code></pre></div>
+<h2 id="full-posterior">Full posterior</h2>
+<p><code>posterior()</code> returns a <code>bpm</code> object that
+contains the MAP estimate, Laplace-approximated covariance, and link
+function. A <code>bpm</code> object is self-contained and can be used
+with <code>predict()</code> directly.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">posterior</span>(fit)     <span class="co"># bpm object: MAP + posterior covariance + link</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># predict() works directly on the bpm object for a new patient</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">predict</span>(post, new_pt)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; [1] 0.2609625</span></span></code></pre></div>
 <h2 id="reference">Reference</h2>
 <p>Sadatsafavi M, Riley RD (2026). Progression to the mean: A practical
 Bayesian workflow for the development and deployment of clinical
