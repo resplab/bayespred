@@ -20,26 +20,68 @@
 #'   used (requires `model = TRUE` at fit time).
 #' @param family Family object for the projection fit. `NULL` (default) reuses
 #'   `object$posterior$family`.
+#' @param compute_divergence Logical (default `TRUE`). If `TRUE`, compute the
+#'   median KL divergence and median Jensen-Shannon divergence (both in bits)
+#'   between the full model's PM predictions and the projected model's fitted
+#'   values on the development sample. These are stored as `$kl_median` and
+#'   `$js_median` on the returned object.
 #' @param ... Currently unused.
 #'
 #' @return For `type = "pm"`, an object of class `"bpmproj_pm"` with elements
-#'   `coefficients`, `terms`, `contrasts`, `xlevels`, `family`, and `call`.
+#'   `coefficients`, `terms`, `contrasts`, `xlevels`, `family`, `call`,
+#'   `kl_median`, and `js_median`.
 #' @seealso [predict.bpmproj_pm()]
 #' @export
 bpmproject <- function(object, type = c("pm", "full"),
-                       formula = NULL, data = NULL, family = NULL, ...) {
+                       formula = NULL, data = NULL, family = NULL,
+                       compute_divergence = TRUE, ...) {
   type <- match.arg(type)
   switch(type,
     pm   = .bpmproj_pm(object, formula = formula, data = data,
-                       family = family, ...),
+                       family = family,
+                       compute_divergence = compute_divergence, ...),
     full = stop('type = "full" projection is not yet implemented.', call. = FALSE)
   )
 }
 
 # ------------------------------------------------------------------------------
+# Internal helpers
+
+# Per-observation KL divergence D_KL(p || q) in bits.
+.kl_bits <- function(p, q) {
+  p * log2(p / q) + (1 - p) * log2((1 - p) / (1 - q))
+}
+
+# Per-observation Jensen-Shannon divergence in bits (symmetric, bounded [0,1]).
+.js_bits <- function(p, q) {
+  m <- (p + q) / 2
+  0.5 * .kl_bits(p, m) + 0.5 * .kl_bits(q, m)
+}
+
+# Compute median KL and JS divergence; replace non-finite values with NA and
+# warn if any are found.
+.divergence_summary <- function(pm, q_fitted) {
+  kl  <- .kl_bits(pm, q_fitted)
+  js  <- .js_bits(pm, q_fitted)
+  bad <- !is.finite(kl) | !is.finite(js)
+  if (any(bad)) {
+    kl[bad] <- NA_real_
+    js[bad] <- NA_real_
+    warning(
+      sum(bad), " observation(s) produced non-finite divergence values ",
+      "(projected probabilities outside (0, 1)); set to NA.",
+      call. = FALSE
+    )
+  }
+  list(kl_median = median(kl, na.rm = TRUE),
+       js_median = median(js, na.rm = TRUE))
+}
+
+# ------------------------------------------------------------------------------
 # Internal PM projection implementation
 
-.bpmproj_pm <- function(object, formula = NULL, data = NULL, family = NULL, ...) {
+.bpmproj_pm <- function(object, formula = NULL, data = NULL, family = NULL,
+                         compute_divergence = TRUE, ...) {
   cl          <- match.call()
   post        <- object$posterior
   proj_family <- if (is.null(family)) post$family else family
@@ -65,6 +107,11 @@ bpmproject <- function(object, type = c("pm", "full"),
     pm  <- .pm_quadrature(mu, sig)
     fit <- suppressWarnings(glm.fit(X_dev, pm, family = proj_family))
 
+    div <- if (isTRUE(compute_divergence))
+      .divergence_summary(pm, fit$fitted.values)
+    else
+      list(kl_median = NA_real_, js_median = NA_real_)
+
     structure(
       list(
         coefficients = fit$coefficients,
@@ -72,6 +119,8 @@ bpmproject <- function(object, type = c("pm", "full"),
         contrasts    = post$contrasts,
         xlevels      = post$xlevels,
         family       = proj_family,
+        kl_median    = div$kl_median,
+        js_median    = div$js_median,
         call         = cl
       ),
       class = "bpmproj_pm"
@@ -99,6 +148,11 @@ bpmproject <- function(object, type = c("pm", "full"),
 
     fit <- suppressWarnings(glm.fit(X_proj, pm, family = proj_family))
 
+    div <- if (isTRUE(compute_divergence))
+      .divergence_summary(pm, fit$fitted.values)
+    else
+      list(kl_median = NA_real_, js_median = NA_real_)
+
     structure(
       list(
         coefficients = fit$coefficients,
@@ -106,6 +160,8 @@ bpmproject <- function(object, type = c("pm", "full"),
         contrasts    = proj_contrasts,
         xlevels      = proj_xlevels,
         family       = proj_family,
+        kl_median    = div$kl_median,
+        js_median    = div$js_median,
         call         = cl
       ),
       class = "bpmproj_pm"
@@ -154,5 +210,10 @@ print.bpmproj_pm <- function(x, ...) {
   cat("Call:\n"); print(x$call); cat("\n")
   cat("Coefficients:\n")
   print(round(x$coefficients, 4))
+  if (!is.na(x$kl_median)) {
+    cat("\nProjection accuracy (development sample):\n")
+    cat(sprintf("  Median KL divergence: %.5f bits\n", x$kl_median))
+    cat(sprintf("  Median JS divergence: %.5f bits\n", x$js_median))
+  }
   invisible(x)
 }

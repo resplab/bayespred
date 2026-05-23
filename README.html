@@ -661,11 +661,11 @@ time.</p>
 <span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a><span class="co">#&gt; 0.2493921 0.2581651 0.2609625 0.2691777</span></span></code></pre></div>
 <h2 id="pm-projection">PM projection</h2>
 <p><code>bpmproject()</code> regresses the posterior-mean soft labels
-onto a design matrix, producing a standalone deployable model with no
-covariance matrix. All three aspects default to the main fit but can be
-overridden: <code>formula</code> (predictor set), <code>family</code>
-(link function), and <code>data</code> (can be the development sample,
-local site data, or any external dataset).</p>
+onto a design matrix, producing a standalone deployable model that
+approximates the posterior mean. All three aspects default to the main
+fit but can be overridden: <code>formula</code> (predictor set),
+<code>family</code> (link function), and <code>data</code> (can be the
+development sample, local site data, or any external dataset).</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Self-projection: same predictors as the main model</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>proj <span class="ot">&lt;-</span> <span class="fu">bpmproject</span>(fit)</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">coef</span>(proj)</span>

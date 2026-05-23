@@ -10,6 +10,7 @@ bpmproject(
   formula = NULL,
   data = NULL,
   family = NULL,
+  compute_divergence = TRUE,
   ...
 )
 }
@@ -31,11 +32,18 @@ used (requires \code{model = TRUE} at fit time).}
 \item{family}{Family object for the projection fit. \code{NULL} (default) reuses
 \code{object$posterior$family}.}
 
+\item{compute_divergence}{Logical (default \code{TRUE}). If \code{TRUE}, compute the
+median KL divergence and median Jensen-Shannon divergence (both in bits)
+between the full model's PM predictions and the projected model's fitted
+values on the development sample. These are stored as \verb{$kl_median} and
+\verb{$js_median} on the returned object.}
+
 \item{...}{Currently unused.}
 }
 \value{
 For \code{type = "pm"}, an object of class \code{"bpmproj_pm"} with elements
-\code{coefficients}, \code{terms}, \code{contrasts}, \code{xlevels}, \code{family}, and \code{call}.
+\code{coefficients}, \code{terms}, \code{contrasts}, \code{xlevels}, \code{family}, \code{call},
+\code{kl_median}, and \code{js_median}.
 }
 \description{
 Unified entry point for all projection methods. Dispatches to the

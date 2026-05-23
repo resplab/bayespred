@@ -69,10 +69,11 @@ sapply(priors, function(p) {
 ## PM projection
 
 `bpmproject()` regresses the posterior-mean soft labels onto a design
-matrix, producing a standalone deployable model with no covariance
-matrix. All three aspects default to the main fit but can be overridden:
-`formula` (predictor set), `family` (link function), and `data` (can be
-the development sample, local site data, or any external dataset).
+matrix, producing a standalone deployable model that approximates the
+posterior mean. All three aspects default to the main fit but can be
+overridden: `formula` (predictor set), `family` (link function), and
+`data` (can be the development sample, local site data, or any external
+dataset).
 
 ``` r
 # Self-projection: same predictors as the main model
