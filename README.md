@@ -9,9 +9,9 @@
 
 `bayespred` implements the pragmatic Bayesian workflow for clinical
 prediction modelling described in Sadatsafavi & Riley (2026). It fits
-logistic regression under four shrinkage priors and produces
-**self-contained** model objects whose `predict()` method requires only
-base R at deployment time.
+logistic regression under four shrinkage priors (flat, Jeffreys, log-F,
+and Gaussian) and produces self-contained model objects whose
+`predict()` method requires only base R at deployment time.
 
 ## Installation
 
